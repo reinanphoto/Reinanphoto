@@ -34,15 +34,48 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; background: #fff; color: #000; line-height: 1.5; overflow-x: hidden; touch-action: pan-y; }
         .app-container { max-width: 1400px; margin: 0 auto; padding: 1.5rem 1.5rem 5rem; }
-        .site-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #eaeaea; padding-bottom: 1rem; margin-bottom: 2rem; gap: 1rem; }
-        .brand { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+        
+        /* Header centralizado */
+        .site-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            text-align: center;
+        }
         .logo-img { height: 45px; width: auto; max-width: 100px; object-fit: contain; background: #f5f5f5; border-radius: 10px; padding: 4px; }
         .title-group h1 { font-size: 1.5rem; font-weight: 500; letter-spacing: -0.5px; }
         .subtitle { font-size: 0.75rem; font-weight: 300; color: #3a3a3a; margin-top: 2px; }
-        .main-nav { display: flex; gap: 1.2rem; flex-wrap: wrap; }
-        .nav-btn { background: none; border: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; padding: 0.4rem 0; color: #2c2c2c; transition: all 0.3s ease; border-bottom: 2px solid transparent; }
+        .main-nav {
+            display: flex;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .nav-btn {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0.4rem 0;
+            color: #2c2c2c;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
         .nav-btn.active { border-bottom-color: #000; color: #000; }
         .nav-btn:hover { color: #ff6b6b; transform: translateY(-2px); }
+        
         .view { display: none; animation: fadeIn 0.3s ease; }
         .view.active-view { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
@@ -72,7 +105,6 @@
         button.secondary:hover { background: #ff6b6b; color: white; }
         .floating-menu { position: fixed; bottom: 25px; right: 20px; z-index: 999; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
         .floating-btn { width: 55px; height: 55px; border-radius: 30px; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 20px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; color: white; font-size: 1.4rem; text-decoration: none; }
-        /* Botões sociais com cores específicas */
         .floating-btn.social-item.whatsapp { background: #25D366; background: radial-gradient(circle at 30% 30%, #25D366, #128C7E); }
         .floating-btn.social-item.phone { background: #34B7F1; background: radial-gradient(circle at 30% 30%, #34B7F1, #1C6EA4); }
         .floating-btn.social-item.instagram { background: radial-gradient(circle at 30% 30%, #F58529, #DD2A7B, #8134AF); }
@@ -101,8 +133,6 @@
         @media (max-width: 768px) {
             .app-container { padding: 1rem 1rem 5rem; }
             .photo-grid { gap: 0.8rem; }
-            .site-header { flex-direction: column; align-items: stretch; }
-            .main-nav { justify-content: center; }
             .floating-btn { width: 48px; height: 48px; font-size: 1.2rem; }
             .back-to-top { width: 44px; height: 44px; bottom: 20px; left: 15px; }
         }
@@ -116,7 +146,13 @@
 <body>
 <div class="app-container">
     <header class="site-header">
-        <div class="brand"><img id="siteLogo" class="logo-img" src="" alt="logo"><div class="title-group"><h1 id="siteTitle">Reinan Photo</h1><div id="siteSubtitle" class="subtitle">fotografia & sentimentos</div></div></div>
+        <div class="brand">
+            <img id="siteLogo" class="logo-img" src="" alt="logo">
+            <div class="title-group">
+                <h1 id="siteTitle">Reinan Photo</h1>
+                <div id="siteSubtitle" class="subtitle">fotografia & sentimentos</div>
+            </div>
+        </div>
         <nav class="main-nav">
             <button class="nav-btn active" data-view="gallery"><i class="fas fa-images"></i> Portfólio</button>
             <button class="nav-btn" data-view="about"><i class="fas fa-camera"></i> Sobre</button>
@@ -194,7 +230,7 @@
         return data.secure_url;
     }
     
-    // Inicializar Firebase com Auth
+    // Inicializar Firebase com Auth e subscrição imediata
     async function initFirebase() {
         try {
             const { initializeApp } = window.firebaseAppInstance;
@@ -206,6 +242,9 @@
             window.dbHelpers = window.firebaseAppInstance;
             window.auth = auth;
             
+            // Subscrição imediata (leitura pública, não precisa esperar auth)
+            subscribeToMedia();
+            
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     currentUser = user;
@@ -215,7 +254,6 @@
                         await loadSiteSettings();
                         await loadContacts();
                         await loadAboutContent();
-                        subscribeToMedia();
                     }
                 } else {
                     try {
@@ -268,7 +306,6 @@
             const media = allMedia.find(m => m.id === shareId);
             if (media) {
                 setTimeout(() => openLightbox(media.url, media.type), 500);
-                // Remove o parâmetro da URL sem recarregar a página
                 const newUrl = window.location.pathname;
                 window.history.replaceState({}, '', newUrl);
             }
