@@ -1,17 +1,3 @@
-proibido mudar qualquer outra 
-funcao alem do que for solicitado:
-
-a funcoa de compartilhar o card esta 
-compartilhando o link do cloudinary,
-porem e para quando criar um card ele tenha
-um ID unico, e quando for compartilhar
-e para usar esse id e dai sim quando 
-o usuário clicar vai abri o site com o card
-aberto na tela, quando tocar em fechar,
-o card e permanece no site... adicine cor nao menu flutuante.
-
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -85,11 +71,16 @@ o card e permanece no site... adicine cor nao menu flutuante.
         button.secondary { background: #eaeaea; color: #111; }
         button.secondary:hover { background: #ff6b6b; color: white; }
         .floating-menu { position: fixed; bottom: 25px; right: 20px; z-index: 999; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
-        .floating-btn { width: 55px; height: 55px; border-radius: 30px; background: rgba(255,255,255,0.25); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 20px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; color: #1a1a1a; font-size: 1.4rem; text-decoration: none; }
-        .floating-btn.main-btn { background: rgba(0,0,0,0.75); color: white; }
+        .floating-btn { width: 55px; height: 55px; border-radius: 30px; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 20px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; color: white; font-size: 1.4rem; text-decoration: none; }
+        /* Botões sociais com cores específicas */
+        .floating-btn.social-item.whatsapp { background: #25D366; background: radial-gradient(circle at 30% 30%, #25D366, #128C7E); }
+        .floating-btn.social-item.phone { background: #34B7F1; background: radial-gradient(circle at 30% 30%, #34B7F1, #1C6EA4); }
+        .floating-btn.social-item.instagram { background: radial-gradient(circle at 30% 30%, #F58529, #DD2A7B, #8134AF); }
+        .floating-btn.social-item.address { background: #FF6B6B; background: radial-gradient(circle at 30% 30%, #FF6B6B, #EE5A24); }
+        .floating-btn.main-btn { background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); color: white; border: 1px solid rgba(255,255,255,0.3); }
         .floating-btn.social-item { transform: scale(0); opacity: 0; pointer-events: none; background: rgba(30,30,30,0.7); color: white; }
         .floating-menu.open .social-item { transform: scale(1); opacity: 1; pointer-events: auto; }
-        .floating-btn:hover { transform: scale(1.08); background: #ff6b6b; color: white; }
+        .floating-btn:hover { transform: scale(1.08); filter: brightness(1.1); }
         .back-to-top { position: fixed; bottom: 25px; left: 20px; width: 48px; height: 48px; border-radius: 30px; background: rgba(0,0,0,0.65); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 999; transition: all 0.3s; color: white; opacity: 0; visibility: hidden; }
         .back-to-top.show { opacity: 1; visibility: visible; }
         .back-to-top:hover { background: #ff6b6b; transform: scale(1.05); }
@@ -146,7 +137,13 @@ o card e permanece no site... adicine cor nao menu flutuante.
         <div class="admin-panel"><h3>Gerenciar Mídias (Editar / Excluir)</h3><div id="adminPhotoList"></div></div>
     </div>
 </div>
-<div class="floating-menu" id="floatingMenu"><a href="#" target="_blank" class="floating-btn social-item" id="whatsappBtn"><i class="fab fa-whatsapp"></i></a><a href="#" class="floating-btn social-item" id="callBtn"><i class="fas fa-phone-alt"></i></a><a href="#" target="_blank" class="floating-btn social-item" id="instagramBtn"><i class="fab fa-instagram"></i></a><a href="#" class="floating-btn social-item" id="addressBtn"><i class="fas fa-map-marker-alt"></i></a><div class="floating-btn main-btn" id="menuToggle"><i class="fas fa-share-alt"></i></div></div>
+<div class="floating-menu" id="floatingMenu">
+    <a href="#" target="_blank" class="floating-btn social-item whatsapp" id="whatsappBtn"><i class="fab fa-whatsapp"></i></a>
+    <a href="#" class="floating-btn social-item phone" id="callBtn"><i class="fas fa-phone-alt"></i></a>
+    <a href="#" target="_blank" class="floating-btn social-item instagram" id="instagramBtn"><i class="fab fa-instagram"></i></a>
+    <a href="#" class="floating-btn social-item address" id="addressBtn"><i class="fas fa-map-marker-alt"></i></a>
+    <div class="floating-btn main-btn" id="menuToggle"><i class="fas fa-share-alt"></i></div>
+</div>
 <div class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></div>
 <div id="lightboxModal" class="modal" style="display: none;"><div class="modal-content"><div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 12px;"><div class="zoom-controls"><button id="zoomInBtn"><i class="fas fa-search-plus"></i></button><button id="zoomOutBtn"><i class="fas fa-search-minus"></i></button><button id="zoomResetBtn"><i class="fas fa-undo-alt"></i></button></div><div class="close-modal" id="closeModalBtn"><i class="fas fa-times"></i></div></div><div class="modal-img-container"><img id="modalImage" src="" alt="zoom" style="display:none;"><video id="modalVideo" controls style="display:none;"></video></div></div></div>
 <div id="editModal" class="modal" style="display: none;"><div class="login-card" style="max-width: 450px;"><h3><i class="fas fa-edit"></i> Editar Mídia</h3><input type="hidden" id="editMediaId"><div class="form-group"><label>Nova legenda</label><input type="text" id="editCaption" placeholder="Legenda"></div><div class="form-group"><label>Novo arquivo (opcional)</label><input type="file" id="editMediaFile" accept="image/*,video/*"></div><div style="display: flex; gap: 10px; justify-content: center;"><button id="confirmEditBtn">Salvar Alterações</button><button id="cancelEditBtn" class="secondary">Cancelar</button></div></div></div>
@@ -221,14 +218,12 @@ o card e permanece no site... adicine cor nao menu flutuante.
                         subscribeToMedia();
                     }
                 } else {
-                    // Tenta login anônimo automaticamente para leituras públicas (não necessário, mas ajuda)
                     try {
                         await signInAnonymously(auth);
                     } catch(e) { console.warn("Erro no login anônimo", e); }
                 }
             });
             
-            // Se não estiver autenticado em 2 segundos, tenta anonimamente
             setTimeout(() => {
                 if (!currentUser && auth) {
                     signInAnonymously(auth).catch(e => console.warn("Falha no login anônimo automático", e));
@@ -237,7 +232,6 @@ o card e permanece no site... adicine cor nao menu flutuante.
         } catch(e) { console.error("Firebase init error", e); warningDiv.style.display = 'block'; warningDiv.innerText = 'Erro ao conectar ao Firebase.'; }
     }
     
-    // Função para garantir autenticação antes de escrever
     async function ensureAuthForWrite() {
         if (currentUser) return true;
         if (!auth) return false;
@@ -266,15 +260,34 @@ o card e permanece no site... adicine cor nao menu flutuante.
     async function editMedia(mediaId, newCaption, newFile) { let newUrl = null; let newType = null; if(newFile) { newUrl = await uploadToCloudinary(newFile); newType = newFile.type.startsWith('image/') ? 'image' : 'video'; } if(db && await ensureAuthForWrite()){ const { updateDoc, doc }=window.dbHelpers; const updates = { caption: newCaption }; if(newUrl) { updates.url = newUrl; updates.type = newType; } await updateDoc(doc(db,"media",mediaId), updates); } else { alert("Falha na autenticação para editar"); } }
     async function deleteMedia(mediaId) { if(db && await ensureAuthForWrite()){ const { deleteDoc, doc }=window.dbHelpers; await deleteDoc(doc(db,"media",mediaId)); } else { alert("Falha na autenticação para excluir"); } }
     
-    function subscribeToMedia(){ if(!db) return; const { onSnapshot, collection, query, orderBy }=window.dbHelpers; onSnapshot(query(collection(db,"media"),orderBy("createdAt","desc")), (snap) => { allMedia = snap.docs.map(d=>({id:d.id,url:d.data().url,caption:d.data().caption,type:d.data().type})); renderGallery(); if(isAdminLoggedIn) renderAdminList(); }, (error) => { console.error("Firestore read error:", error); warningDiv.style.display = 'block'; warningDiv.innerText = 'Erro ao ler dados do Firebase. Verifique as regras de segurança (allow read: if true).'; });
+    function subscribeToMedia(){ if(!db) return; const { onSnapshot, collection, query, orderBy }=window.dbHelpers; onSnapshot(query(collection(db,"media"),orderBy("createdAt","desc")), (snap) => { allMedia = snap.docs.map(d=>({id:d.id,url:d.data().url,caption:d.data().caption,type:d.data().type})); renderGallery(); if(isAdminLoggedIn) renderAdminList(); 
+        // Após carregar as mídias, verifica se há um ID na URL para abrir o modal automaticamente
+        const urlParams = new URLSearchParams(window.location.search);
+        const shareId = urlParams.get('id');
+        if (shareId) {
+            const media = allMedia.find(m => m.id === shareId);
+            if (media) {
+                setTimeout(() => openLightbox(media.url, media.type), 500);
+                // Remove o parâmetro da URL sem recarregar a página
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, '', newUrl);
+            }
+        }
+    }, (error) => { console.error("Firestore read error:", error); warningDiv.style.display = 'block'; warningDiv.innerText = 'Erro ao ler dados do Firebase. Verifique as regras de segurança (allow read: if true).'; });
     }
     
-    function shareMedia(url, caption) {
+    // Função de compartilhamento modificada: usa link com ID
+    function shareMedia(mediaId, caption) {
         const whats = contacts.whatsapp || "+351912345678";
         const insta = contacts.instagram || "@reinanphoto";
-        const text = `📸 *${caption}*\n\n✨ Faça seu orçamento! ✨\n📱 WhatsApp: ${whats}\n📷 Instagram: ${insta}\n\n💫 Reinan Photo - Transformando momentos em arte.`;
-        if(navigator.share) { navigator.share({ title: 'Reinan Photo', text: text, url: url }).catch(()=>{}); }
-        else { navigator.clipboard.writeText(text + " " + url); alert("Informações copiadas!"); }
+        const shareUrl = `${window.location.origin}${window.location.pathname}?id=${mediaId}`;
+        const text = `📸 *${caption}*\n\n✨ Faça seu orçamento! ✨\n📱 WhatsApp: ${whats}\n📷 Instagram: ${insta}\n\n🔗 Veja esta obra: ${shareUrl}\n\n💫 Reinan Photo - Transformando momentos em arte.`;
+        if (navigator.share) {
+            navigator.share({ title: 'Reinan Photo', text: text, url: shareUrl }).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(text);
+            alert("Link copiado! Compartilhe com seus amigos.");
+        }
     }
     
     function openLightbox(url, type) {
@@ -295,10 +308,10 @@ o card e permanece no site... adicine cor nao menu flutuante.
         modal.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
     }
     
-    function renderGallery(){ if(!photoGrid) return; if(!allMedia.length){ photoGrid.innerHTML=`<div style="grid-column:span 2;text-align:center;padding:2rem;">Nenhuma mídia. Faça upload no admin.</div>`; return; } photoGrid.innerHTML=allMedia.map(m=>`<div class="photo-card" data-id="${m.id}"><div class="media-wrapper">${m.type === 'image' ? `<img class="photo-img" data-id="${m.id}" src="${m.url}" alt="${escapeHtml(m.caption)}">` : `<video class="video-media" data-id="${m.id}" src="${m.url}" muted loop playsinline></video>`}<button class="btn-life" data-id="${m.id}" data-type="${m.type}"><i class="fas fa-feather-alt"></i> Dar vida</button><button class="btn-share" data-id="${m.id}" data-url="${m.url}" data-caption="${escapeHtml(m.caption)}"><i class="fas fa-share-alt"></i> Compartilhar</button></div><div class="media-caption">${escapeHtml(m.caption)||"Sem legenda"}</div></div>`).join('');
+    function renderGallery(){ if(!photoGrid) return; if(!allMedia.length){ photoGrid.innerHTML=`<div style="grid-column:span 2;text-align:center;padding:2rem;">Nenhuma mídia. Faça upload no admin.</div>`; return; } photoGrid.innerHTML=allMedia.map(m=>`<div class="photo-card" data-id="${m.id}"><div class="media-wrapper">${m.type === 'image' ? `<img class="photo-img" data-id="${m.id}" src="${m.url}" alt="${escapeHtml(m.caption)}">` : `<video class="video-media" data-id="${m.id}" src="${m.url}" muted loop playsinline></video>`}<button class="btn-life" data-id="${m.id}" data-type="${m.type}"><i class="fas fa-feather-alt"></i> Dar vida</button><button class="btn-share" data-id="${m.id}" data-caption="${escapeHtml(m.caption)}"><i class="fas fa-share-alt"></i> Compartilhar</button></div><div class="media-caption">${escapeHtml(m.caption)||"Sem legenda"}</div></div>`).join('');
         document.querySelectorAll('.photo-img, .video-media').forEach(el=>{ el.addEventListener('click',(e)=>{ e.stopPropagation(); const parent = el.closest('.photo-card'); const id = parent.getAttribute('data-id'); const media = allMedia.find(m=>m.id==id); if(media) openLightbox(media.url, media.type); }); });
         document.querySelectorAll('.btn-life').forEach(btn=>btn.addEventListener('click',(e)=>{ e.stopPropagation(); const id=btn.getAttribute('data-id'); const type=btn.getAttribute('data-type'); const target = type==='image' ? document.querySelector(`.photo-img[data-id="${id}"]`) : document.querySelector(`.video-media[data-id="${id}"]`); if(target){ target.classList.toggle('forced-color'); btn.innerHTML=target.classList.contains('forced-color')?'<i class="fas fa-heart"></i> Vivida':'<i class="fas fa-feather-alt"></i> Dar vida'; } }));
-        document.querySelectorAll('.btn-share').forEach(btn=>btn.addEventListener('click',(e)=>{ e.stopPropagation(); const url=btn.getAttribute('data-url'); const cap=btn.getAttribute('data-caption'); shareMedia(url, cap); }));
+        document.querySelectorAll('.btn-share').forEach(btn=>btn.addEventListener('click',(e)=>{ e.stopPropagation(); const id=btn.getAttribute('data-id'); const cap=btn.getAttribute('data-caption'); shareMedia(id, cap); }));
         document.querySelectorAll('.video-media').forEach(video=>{ video.addEventListener('mouseenter',()=>video.play().catch(()=>{})); video.addEventListener('mouseleave',()=>{video.pause(); video.currentTime=0;}); video.addEventListener('touchstart',()=>video.play().catch(()=>{})); });
     }
     
