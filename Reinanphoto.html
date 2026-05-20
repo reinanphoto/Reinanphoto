@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -56,11 +57,15 @@
         .logo-img { height: 45px; width: auto; max-width: 100px; object-fit: contain; background: #f5f5f5; border-radius: 10px; padding: 4px; }
         .title-group h1 { font-size: 1.5rem; font-weight: 500; letter-spacing: -0.5px; }
         .subtitle { font-size: 0.75rem; font-weight: 300; color: #3a3a3a; margin-top: 2px; }
+        
+        /* Menu com distribuição lado-esquerdo, centro, lado-direito */
         .main-nav {
             display: flex;
-            gap: 1.2rem;
-            flex-wrap: wrap;
-            justify-content: center;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
         }
         .nav-btn {
             background: none;
@@ -72,9 +77,14 @@
             color: #2c2c2c;
             transition: all 0.3s ease;
             border-bottom: 2px solid transparent;
+            flex: 0 1 auto;
         }
         .nav-btn.active { border-bottom-color: #000; color: #000; }
         .nav-btn:hover { color: #ff6b6b; transform: translateY(-2px); }
+        /* Forçar centralização do botão "Sobre" usando ordem flex */
+        .nav-btn[data-view="gallery"] { order: 1; text-align: left; }
+        .nav-btn[data-view="about"] { order: 2; text-align: center; }
+        .nav-btn[data-view="admin"] { order: 3; text-align: right; }
         
         .view { display: none; animation: fadeIn 0.3s ease; }
         .view.active-view { display: block; }
@@ -135,6 +145,7 @@
             .photo-grid { gap: 0.8rem; }
             .floating-btn { width: 48px; height: 48px; font-size: 1.2rem; }
             .back-to-top { width: 44px; height: 44px; bottom: 20px; left: 15px; }
+            .main-nav { max-width: 100%; }
         }
         @media (max-width: 480px) {
             .btn-life, .btn-share { font-size: 0.6rem; padding: 4px 8px; }
@@ -356,7 +367,57 @@
     
     function updateFloatingButtons(){ const wBtn=document.getElementById('whatsappBtn'), cBtn=document.getElementById('callBtn'), iBtn=document.getElementById('instagramBtn'), aBtn=document.getElementById('addressBtn'); if(wBtn) wBtn.href=`https://wa.me/${contacts.whatsapp.replace(/[^0-9+]/g,'')}`; if(cBtn) cBtn.href=`tel:${contacts.phone.replace(/[^0-9+]/g,'')}`; if(iBtn) iBtn.href=`https://instagram.com/${contacts.instagram.replace('@','')}`; if(aBtn) aBtn.onclick=(e)=>{ e.preventDefault(); alert(`📍 ${contacts.address}`); }; }
     
-    function showLoginModal(){ const ov=document.createElement('div'); ov.className='login-overlay'; ov.innerHTML=`<div class="login-card"><h2><i class="fas fa-lock"></i> Admin</h2><input id="loginUser" placeholder="Usuário"><input id="loginPass" type="password" placeholder="Senha"><button id="loginBtn">Entrar</button><div id="loginErr" style="color:red;margin-top:8px;"></div></div>`; document.body.appendChild(ov); const login=async()=>{ if(ov.querySelector('#loginUser').value===ADMIN_USERNAME && ov.querySelector('#loginPass').value===ADMIN_PASSWORD){ const authed = await ensureAuthForWrite(); if(authed){ isAdminLoggedIn=true; ov.remove(); document.getElementById('adminView').classList.add('active-view'); document.getElementById('galleryView').classList.remove('active-view'); document.getElementById('aboutView').classList.remove('active-view'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.querySelector('[data-view="admin"]').classList.add('active'); renderAdminList(); } else { ov.querySelector('#loginErr').innerText="Falha na autenticação Firebase."; } }else{ ov.querySelector('#loginErr').innerText="Credenciais inválidas"; } }; ov.querySelector('#loginBtn').onclick=login; ov.querySelector('#loginPass').addEventListener('keypress',e=>{if(e.key==='Enter')login();}); }
+    // Modal de login modificado com botão "Voltar ao início"
+    function showLoginModal(){ 
+        const ov=document.createElement('div'); 
+        ov.className='login-overlay'; 
+        ov.innerHTML=`<div class="login-card">
+            <h2><i class="fas fa-lock"></i> Admin</h2>
+            <input id="loginUser" placeholder="Usuário">
+            <input id="loginPass" type="password" placeholder="Senha">
+            <button id="loginBtn">Entrar</button>
+            <div style="margin-top: 12px;">
+                <button id="backToHomeBtn" class="secondary" style="background:#666; color:white;"><i class="fas fa-home"></i> Voltar ao início</button>
+            </div>
+            <div id="loginErr" style="color:red;margin-top:8px;"></div>
+        </div>`; 
+        document.body.appendChild(ov); 
+        
+        const login=async()=>{ 
+            if(ov.querySelector('#loginUser').value===ADMIN_USERNAME && ov.querySelector('#loginPass').value===ADMIN_PASSWORD){ 
+                const authed = await ensureAuthForWrite(); 
+                if(authed){ 
+                    isAdminLoggedIn=true; 
+                    ov.remove(); 
+                    document.getElementById('adminView').classList.add('active-view'); 
+                    document.getElementById('galleryView').classList.remove('active-view'); 
+                    document.getElementById('aboutView').classList.remove('active-view'); 
+                    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); 
+                    document.querySelector('[data-view="admin"]').classList.add('active'); 
+                    renderAdminList(); 
+                } else { 
+                    ov.querySelector('#loginErr').innerText="Falha na autenticação Firebase."; 
+                } 
+            }else{ 
+                ov.querySelector('#loginErr').innerText="Credenciais inválidas"; 
+            } 
+        }; 
+        
+        const backToHome = () => {
+            ov.remove();
+            // Voltar para a view do portfólio (gallery)
+            document.getElementById('galleryView').classList.add('active-view');
+            document.getElementById('aboutView').classList.remove('active-view');
+            document.getElementById('adminView').classList.remove('active-view');
+            document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+            document.querySelector('[data-view="gallery"]').classList.add('active');
+        };
+        
+        ov.querySelector('#loginBtn').onclick=login; 
+        ov.querySelector('#backToHomeBtn').onclick=backToHome;
+        ov.querySelector('#loginPass').addEventListener('keypress',e=>{if(e.key==='Enter')login();});
+    }
+    
     function initNav(){ document.querySelectorAll('.nav-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ const v=btn.getAttribute('data-view'); if(v==='admin' && !isAdminLoggedIn){ showLoginModal(); return; } document.querySelectorAll('.view').forEach(vw=>vw.classList.remove('active-view')); document.getElementById(`${v}View`).classList.add('active-view'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); if(v==='admin' && isAdminLoggedIn) renderAdminList(); }); }); adminLogoutBtn.addEventListener('click',()=>{ isAdminLoggedIn=false; alert("Logout"); document.querySelector('[data-view="gallery"]').click(); }); }
     const menuToggle=document.getElementById('menuToggle'), floatingMenu=document.getElementById('floatingMenu'); menuToggle.addEventListener('click',()=>floatingMenu.classList.toggle('open'));
     const backBtn=document.getElementById('backToTop'); window.addEventListener('scroll',()=>{ backBtn.classList.toggle('show',window.scrollY>300); }); backBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
