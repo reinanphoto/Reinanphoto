@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -24,10 +23,12 @@
     <title>Reinan Photo | Portfolio Fotográfico</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Firebase SDKs (modular) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        window.firebaseAppInstance = { initializeApp, getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDoc, setDoc };
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        window.firebaseAppInstance = { initializeApp, getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDoc, setDoc, getAuth, signInAnonymously, onAuthStateChanged };
     </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -151,10 +152,10 @@
     const ADMIN_USERNAME = "admin";
     const ADMIN_PASSWORD = "reinan123";
     
-    let allMedia = [], isAdminLoggedIn = false, db, firestoreReady = false;
+    let allMedia = [], isAdminLoggedIn = false, db, auth, firebaseReady = false;
+    let currentUser = null;
     let contacts = { whatsapp: "+351912345678", phone: "+351912345678", instagram: "@reinanphoto", address: "Rua da Fotografia, 123 - Lisboa" };
     let aboutHtml = "";
-    let readPermissionDenied = false;
     
     // DOM elements
     const photoGrid = document.getElementById('photoGrid'), adminPhotoListDiv = document.getElementById('adminPhotoList');
@@ -170,10 +171,6 @@
     
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
     
-    // Cache no localStorage
-    function saveMediaToCache() { localStorage.setItem('reinan_media_cache', JSON.stringify(allMedia)); }
-    function loadMediaFromCache() { const cached = localStorage.getItem('reinan_media_cache'); if(cached) { try { allMedia = JSON.parse(cached); renderGallery(); if(isAdminLoggedIn) renderAdminList(); } catch(e){} } }
-    
     async function uploadToCloudinary(file) {
         const isVideo = file.type.startsWith('video/');
         const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${isVideo ? 'video' : 'image'}/upload`;
@@ -186,32 +183,76 @@
         return data.secure_url;
     }
     
+    // Inicializar Firebase com Auth
     async function initFirebase() {
         try {
             const { initializeApp } = window.firebaseAppInstance;
             const { getFirestore } = window.firebaseAppInstance;
+            const { getAuth, onAuthStateChanged, signInAnonymously } = window.firebaseAppInstance;
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
+            auth = getAuth(app);
             window.dbHelpers = window.firebaseAppInstance;
-            firestoreReady = true;
-            await loadSiteSettings();
-            await loadContacts();
-            await loadAboutContent();
-            subscribeToMedia();
-        } catch(e) { console.error("Firebase init error", e); warningDiv.style.display = 'block'; warningDiv.innerText = '⚠️ Erro ao conectar ao Firebase. Usando dados locais (cache).'; loadMediaFromCache(); }
+            window.auth = auth;
+            
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    console.log("Autenticado anonimamente:", user.uid);
+                    if (!firebaseReady) {
+                        firebaseReady = true;
+                        await loadSiteSettings();
+                        await loadContacts();
+                        await loadAboutContent();
+                        subscribeToMedia();
+                    }
+                } else {
+                    // Tenta login anônimo automaticamente para leituras públicas (não necessário, mas ajuda)
+                    try {
+                        await signInAnonymously(auth);
+                    } catch(e) { console.warn("Erro no login anônimo", e); }
+                }
+            });
+            
+            // Se não estiver autenticado em 2 segundos, tenta anonimamente
+            setTimeout(() => {
+                if (!currentUser && auth) {
+                    signInAnonymously(auth).catch(e => console.warn("Falha no login anônimo automático", e));
+                }
+            }, 1000);
+        } catch(e) { console.error("Firebase init error", e); warningDiv.style.display = 'block'; warningDiv.innerText = 'Erro ao conectar ao Firebase.'; }
     }
     
-    async function loadSiteSettings() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "siteConfig")); if(snap.exists()){ const d=snap.data(); siteTitleEl.innerText=d.siteTitle||"Reinan Photo"; siteSubtitleEl.innerText=d.siteSubtitle||""; if(d.logoUrl) siteLogoImg.src=d.logoUrl; adminSiteTitle.value=d.siteTitle||""; adminSubtitle.value=d.siteSubtitle||""; } else { const { setDoc } = window.dbHelpers; await setDoc(doc(db, "settings", "siteConfig"), { siteTitle: "Reinan Photo", siteSubtitle: "fotografia & sentimentos" }); } } catch(e){} }
-    async function saveSiteSettings() { const title=adminSiteTitle.value.trim()||"Reinan Photo", sub=adminSubtitle.value.trim()||""; siteTitleEl.innerText=title; siteSubtitleEl.innerText=sub; if(firestoreReady){ try{ const { updateDoc, doc }=window.dbHelpers; await updateDoc(doc(db,"settings","siteConfig"),{siteTitle:title,siteSubtitle:sub}); }catch(e){} } alert("Configurações salvas!"); }
-    async function uploadLogoLogic(){ const file=logoUpload.files[0]; if(!file) return; try{ const url=await uploadToCloudinary(file); siteLogoImg.src=url; if(firestoreReady){ const { updateDoc, doc }=window.dbHelpers; await updateDoc(doc(db,"settings","siteConfig"),{logoUrl:url}); } alert("Logo atualizada"); }catch(e){ alert("Erro:"+e.message); } }
-    async function loadContacts() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "contacts")); if(snap.exists()){ contacts = snap.data(); updateFloatingButtons(); adminWhatsapp.value=contacts.whatsapp||""; adminPhone.value=contacts.phone||""; adminInstagram.value=contacts.instagram||""; adminAddress.value=contacts.address||""; } else { await setDoc(doc(db, "settings", "contacts"), contacts); } } catch(e){} }
-    async function saveContacts() { contacts = { whatsapp: adminWhatsapp.value.trim(), phone: adminPhone.value.trim(), instagram: adminInstagram.value.trim(), address: adminAddress.value.trim() }; if(firestoreReady){ try{ const { setDoc, doc }=window.dbHelpers; await setDoc(doc(db,"settings","contacts"), contacts); }catch(e){} } updateFloatingButtons(); alert("Contatos salvos!"); }
-    async function loadAboutContent() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "about")); if(snap.exists()){ aboutHtml = snap.data().content; } else { aboutHtml = `<i class="fas fa-camera-retro" style="font-size: 2rem; margin-bottom: 1rem;"></i><h2 style="font-weight: 400;">Reinan Photo</h2><p>Fotografia documental e artística. Capturo a essência do instante, a luz que transforma o ordinário em extraordinário.</p><p style="margin-top: 1rem; font-size: 0.9rem;">📍 ${contacts.address}</p>`; await setDoc(doc(db, "settings", "about"), { content: aboutHtml }); } renderAbout(); if(aboutEditor) aboutEditor.value = aboutHtml; } catch(e){} }
-    async function saveAboutContent() { const newContent = aboutEditor.value; if(!newContent) return; aboutHtml = newContent; if(firestoreReady){ try{ const { setDoc, doc }=window.dbHelpers; await setDoc(doc(db,"settings","about"), { content: aboutHtml }); }catch(e){} } renderAbout(); alert("Conteúdo 'Sobre' atualizado!"); }
+    // Função para garantir autenticação antes de escrever
+    async function ensureAuthForWrite() {
+        if (currentUser) return true;
+        if (!auth) return false;
+        try {
+            const { signInAnonymously } = window.firebaseAppInstance;
+            const userCred = await signInAnonymously(auth);
+            currentUser = userCred.user;
+            return true;
+        } catch(e) {
+            console.error("Falha ao autenticar para escrita", e);
+            alert("Erro de autenticação. Verifique o Firebase Authentication (método anônimo habilitado).");
+            return false;
+        }
+    }
+    
+    async function loadSiteSettings() { if(!db) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "siteConfig")); if(snap.exists()){ const d=snap.data(); siteTitleEl.innerText=d.siteTitle||"Reinan Photo"; siteSubtitleEl.innerText=d.siteSubtitle||""; if(d.logoUrl) siteLogoImg.src=d.logoUrl; adminSiteTitle.value=d.siteTitle||""; adminSubtitle.value=d.siteSubtitle||""; } else { if(await ensureAuthForWrite()) { const { setDoc } = window.dbHelpers; await setDoc(doc(db, "settings", "siteConfig"), { siteTitle: "Reinan Photo", siteSubtitle: "fotografia & sentimentos" }); } } } catch(e){} }
+    async function saveSiteSettings() { const title=adminSiteTitle.value.trim()||"Reinan Photo", sub=adminSubtitle.value.trim()||""; siteTitleEl.innerText=title; siteSubtitleEl.innerText=sub; if(db && await ensureAuthForWrite()){ try{ const { updateDoc, doc }=window.dbHelpers; await updateDoc(doc(db,"settings","siteConfig"),{siteTitle:title,siteSubtitle:sub}); alert("Configurações salvas!"); } catch(e){ alert("Erro ao salvar: "+e.message); } } else { alert("Necessário autenticação. Tente novamente."); } }
+    async function uploadLogoLogic(){ const file=logoUpload.files[0]; if(!file) return; try{ const url=await uploadToCloudinary(file); siteLogoImg.src=url; if(db && await ensureAuthForWrite()){ const { updateDoc, doc }=window.dbHelpers; await updateDoc(doc(db,"settings","siteConfig"),{logoUrl:url}); alert("Logo atualizada"); } }catch(e){ alert("Erro:"+e.message); } }
+    async function loadContacts() { if(!db) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "contacts")); if(snap.exists()){ contacts = snap.data(); updateFloatingButtons(); adminWhatsapp.value=contacts.whatsapp||""; adminPhone.value=contacts.phone||""; adminInstagram.value=contacts.instagram||""; adminAddress.value=contacts.address||""; } else { if(await ensureAuthForWrite()) { const { setDoc } = window.dbHelpers; await setDoc(doc(db, "settings", "contacts"), contacts); } } } catch(e){} }
+    async function saveContacts() { contacts = { whatsapp: adminWhatsapp.value.trim(), phone: adminPhone.value.trim(), instagram: adminInstagram.value.trim(), address: adminAddress.value.trim() }; if(db && await ensureAuthForWrite()){ try{ const { setDoc, doc }=window.dbHelpers; await setDoc(doc(db,"settings","contacts"), contacts); updateFloatingButtons(); alert("Contatos salvos!"); } catch(e){ alert("Erro ao salvar contatos: "+e.message); } } else { alert("Necessário autenticação."); } }
+    async function loadAboutContent() { if(!db) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "about")); if(snap.exists()){ aboutHtml = snap.data().content; } else { aboutHtml = `<i class="fas fa-camera-retro" style="font-size: 2rem; margin-bottom: 1rem;"></i><h2 style="font-weight: 400;">Reinan Photo</h2><p>Fotografia documental e artística. Capturo a essência do instante, a luz que transforma o ordinário em extraordinário.</p><p style="margin-top: 1rem; font-size: 0.9rem;">📍 ${contacts.address}</p>`; if(await ensureAuthForWrite()) { const { setDoc } = window.dbHelpers; await setDoc(doc(db, "settings", "about"), { content: aboutHtml }); } } renderAbout(); if(aboutEditor) aboutEditor.value = aboutHtml; } catch(e){} }
+    async function saveAboutContent() { const newContent = aboutEditor.value; if(!newContent) return; aboutHtml = newContent; if(db && await ensureAuthForWrite()){ try{ const { setDoc, doc }=window.dbHelpers; await setDoc(doc(db,"settings","about"), { content: aboutHtml }); renderAbout(); alert("Conteúdo 'Sobre' atualizado!"); } catch(e){ alert("Erro ao salvar: "+e.message); } } else { alert("Necessário autenticação."); } }
     function renderAbout() { if(aboutContentDiv) aboutContentDiv.innerHTML = aboutHtml; }
-    async function uploadNewMedia(){ const file=mediaFile.files[0], cap=mediaCaption.value.trim(); if(!file){ uploadStatus.innerText="Selecione um arquivo"; return; } uploadStatus.innerText="Enviando..."; try{ const url=await uploadToCloudinary(file); const type = file.type.startsWith('image/') ? 'image' : 'video'; if(firestoreReady){ const { addDoc, collection }=window.dbHelpers; await addDoc(collection(db,"media"),{url:url,caption:cap||"Sem legenda",type:type,createdAt:new Date().toISOString()}); } else { const newMedia = { id: Date.now().toString(), url: url, caption: cap||"Sem legenda", type: type }; allMedia.unshift(newMedia); saveMediaToCache(); renderGallery(); if(isAdminLoggedIn) renderAdminList(); } uploadStatus.innerText="Publicada com sucesso!"; mediaFile.value=""; mediaCaption.value=""; setTimeout(()=>uploadStatus.innerText="",3000); }catch(e){ uploadStatus.innerText="Erro: "+e.message; console.error(e); } }
-    async function editMedia(mediaId, newCaption, newFile) { let newUrl = null; let newType = null; if(newFile) { newUrl = await uploadToCloudinary(newFile); newType = newFile.type.startsWith('image/') ? 'image' : 'video'; } if(firestoreReady && !mediaId.toString().startsWith('test_')){ const { updateDoc, doc }=window.dbHelpers; const updates = { caption: newCaption }; if(newUrl) { updates.url = newUrl; updates.type = newType; } await updateDoc(doc(db,"media",mediaId), updates); } else { const index = allMedia.findIndex(m=>m.id==mediaId); if(index!==-1){ allMedia[index].caption = newCaption; if(newUrl) { allMedia[index].url = newUrl; allMedia[index].type = newType; } saveMediaToCache(); renderGallery(); if(isAdminLoggedIn) renderAdminList(); } } }
-    function subscribeToMedia(){ if(!firestoreReady) return; const { onSnapshot, collection, query, orderBy }=window.dbHelpers; onSnapshot(query(collection(db,"media"),orderBy("createdAt","desc")), (snap) => { if(snap.empty && !readPermissionDenied) { loadMediaFromCache(); warningDiv.style.display = 'block'; warningDiv.innerText = '⚠️ Nenhum dado encontrado no Firebase. Exibindo itens do cache local. Verifique as regras de leitura do Firestore.'; readPermissionDenied = true; } else { readPermissionDenied = false; warningDiv.style.display = 'none'; allMedia = snap.docs.map(d=>({id:d.id,url:d.data().url,caption:d.data().caption,type:d.data().type})); saveMediaToCache(); renderGallery(); if(isAdminLoggedIn) renderAdminList(); } }, (error) => { console.error("Firestore read error:", error); warningDiv.style.display = 'block'; warningDiv.innerText = '⚠️ Erro ao ler dados do Firebase. Usando cache local. Verifique as regras de segurança do Firestore.'; loadMediaFromCache(); });
+    
+    async function uploadNewMedia(){ const file=mediaFile.files[0], cap=mediaCaption.value.trim(); if(!file){ uploadStatus.innerText="Selecione um arquivo"; return; } uploadStatus.innerText="Enviando..."; try{ const url=await uploadToCloudinary(file); const type = file.type.startsWith('image/') ? 'image' : 'video'; if(db && await ensureAuthForWrite()){ const { addDoc, collection }=window.dbHelpers; await addDoc(collection(db,"media"),{url:url,caption:cap||"Sem legenda",type:type,createdAt:new Date().toISOString()}); uploadStatus.innerText="Publicada com sucesso!"; mediaFile.value=""; mediaCaption.value=""; setTimeout(()=>uploadStatus.innerText="",3000); } else { throw new Error("Falha na autenticação para escrita"); } }catch(e){ uploadStatus.innerText="Erro: "+e.message; console.error(e); } }
+    async function editMedia(mediaId, newCaption, newFile) { let newUrl = null; let newType = null; if(newFile) { newUrl = await uploadToCloudinary(newFile); newType = newFile.type.startsWith('image/') ? 'image' : 'video'; } if(db && await ensureAuthForWrite()){ const { updateDoc, doc }=window.dbHelpers; const updates = { caption: newCaption }; if(newUrl) { updates.url = newUrl; updates.type = newType; } await updateDoc(doc(db,"media",mediaId), updates); } else { alert("Falha na autenticação para editar"); } }
+    async function deleteMedia(mediaId) { if(db && await ensureAuthForWrite()){ const { deleteDoc, doc }=window.dbHelpers; await deleteDoc(doc(db,"media",mediaId)); } else { alert("Falha na autenticação para excluir"); } }
+    
+    function subscribeToMedia(){ if(!db) return; const { onSnapshot, collection, query, orderBy }=window.dbHelpers; onSnapshot(query(collection(db,"media"),orderBy("createdAt","desc")), (snap) => { allMedia = snap.docs.map(d=>({id:d.id,url:d.data().url,caption:d.data().caption,type:d.data().type})); renderGallery(); if(isAdminLoggedIn) renderAdminList(); }, (error) => { console.error("Firestore read error:", error); warningDiv.style.display = 'block'; warningDiv.innerText = 'Erro ao ler dados do Firebase. Verifique as regras de segurança (allow read: if true).'; });
     }
     
     function shareMedia(url, caption) {
@@ -247,11 +288,11 @@
         document.querySelectorAll('.video-media').forEach(video=>{ video.addEventListener('mouseenter',()=>video.play().catch(()=>{})); video.addEventListener('mouseleave',()=>{video.pause(); video.currentTime=0;}); video.addEventListener('touchstart',()=>video.play().catch(()=>{})); });
     }
     
-    function renderAdminList(){ if(!adminPhotoListDiv) return; if(!allMedia.length){ adminPhotoListDiv.innerHTML="<p>Nenhuma mídia</p>"; return; } adminPhotoListDiv.innerHTML=allMedia.map(m=>`<div class="admin-photo-item">${m.type==='image'?`<img src="${m.url}">`:`<video src="${m.url}" muted></video>`}<div><strong>${escapeHtml(m.caption||"sem legenda")}</strong><br><small>${m.type}</small></div><div><button class="edit-photo-btn" data-id="${m.id}"><i class="fas fa-edit"></i> Editar</button><button class="delete-photo-btn" data-id="${m.id}"><i class="fas fa-trash"></i> Excluir</button></div></div>`).join(''); document.querySelectorAll('.delete-photo-btn').forEach(btn=>btn.addEventListener('click',async(e)=>{ const id=btn.getAttribute('data-id'); if(!confirm("Remover?")) return; if(firestoreReady && !id.toString().startsWith('test_')){ const { deleteDoc, doc }=window.dbHelpers; await deleteDoc(doc(db,"media",id)); } else { allMedia = allMedia.filter(m=>m.id!=id); saveMediaToCache(); renderGallery(); renderAdminList(); } })); document.querySelectorAll('.edit-photo-btn').forEach(btn=>btn.addEventListener('click',(e)=>{ const id=btn.getAttribute('data-id'); const media=allMedia.find(p=>p.id==id); if(media){ document.getElementById('editMediaId').value=id; document.getElementById('editCaption').value=media.caption||''; document.getElementById('editMediaFile').value=''; document.getElementById('editModal').style.display='flex'; } })); }
+    function renderAdminList(){ if(!adminPhotoListDiv) return; if(!allMedia.length){ adminPhotoListDiv.innerHTML="<p>Nenhuma mídia</p>"; return; } adminPhotoListDiv.innerHTML=allMedia.map(m=>`<div class="admin-photo-item">${m.type==='image'?`<img src="${m.url}">`:`<video src="${m.url}" muted></video>`}<div><strong>${escapeHtml(m.caption||"sem legenda")}</strong><br><small>${m.type}</small></div><div><button class="edit-photo-btn" data-id="${m.id}"><i class="fas fa-edit"></i> Editar</button><button class="delete-photo-btn" data-id="${m.id}"><i class="fas fa-trash"></i> Excluir</button></div></div>`).join(''); document.querySelectorAll('.delete-photo-btn').forEach(btn=>btn.addEventListener('click',async(e)=>{ const id=btn.getAttribute('data-id'); if(!confirm("Remover?")) return; await deleteMedia(id); })); document.querySelectorAll('.edit-photo-btn').forEach(btn=>btn.addEventListener('click',(e)=>{ const id=btn.getAttribute('data-id'); const media=allMedia.find(p=>p.id==id); if(media){ document.getElementById('editMediaId').value=id; document.getElementById('editCaption').value=media.caption||''; document.getElementById('editMediaFile').value=''; document.getElementById('editModal').style.display='flex'; } })); }
     
     function updateFloatingButtons(){ const wBtn=document.getElementById('whatsappBtn'), cBtn=document.getElementById('callBtn'), iBtn=document.getElementById('instagramBtn'), aBtn=document.getElementById('addressBtn'); if(wBtn) wBtn.href=`https://wa.me/${contacts.whatsapp.replace(/[^0-9+]/g,'')}`; if(cBtn) cBtn.href=`tel:${contacts.phone.replace(/[^0-9+]/g,'')}`; if(iBtn) iBtn.href=`https://instagram.com/${contacts.instagram.replace('@','')}`; if(aBtn) aBtn.onclick=(e)=>{ e.preventDefault(); alert(`📍 ${contacts.address}`); }; }
     
-    function showLoginModal(){ const ov=document.createElement('div'); ov.className='login-overlay'; ov.innerHTML=`<div class="login-card"><h2><i class="fas fa-lock"></i> Admin</h2><input id="loginUser" placeholder="Usuário"><input id="loginPass" type="password" placeholder="Senha"><button id="loginBtn">Entrar</button><div id="loginErr" style="color:red;margin-top:8px;"></div></div>`; document.body.appendChild(ov); const login=()=>{ if(ov.querySelector('#loginUser').value===ADMIN_USERNAME && ov.querySelector('#loginPass').value===ADMIN_PASSWORD){ isAdminLoggedIn=true; ov.remove(); document.getElementById('adminView').classList.add('active-view'); document.getElementById('galleryView').classList.remove('active-view'); document.getElementById('aboutView').classList.remove('active-view'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.querySelector('[data-view="admin"]').classList.add('active'); renderAdminList(); }else{ ov.querySelector('#loginErr').innerText="Credenciais inválidas"; } }; ov.querySelector('#loginBtn').onclick=login; ov.querySelector('#loginPass').addEventListener('keypress',e=>{if(e.key==='Enter')login();}); }
+    function showLoginModal(){ const ov=document.createElement('div'); ov.className='login-overlay'; ov.innerHTML=`<div class="login-card"><h2><i class="fas fa-lock"></i> Admin</h2><input id="loginUser" placeholder="Usuário"><input id="loginPass" type="password" placeholder="Senha"><button id="loginBtn">Entrar</button><div id="loginErr" style="color:red;margin-top:8px;"></div></div>`; document.body.appendChild(ov); const login=async()=>{ if(ov.querySelector('#loginUser').value===ADMIN_USERNAME && ov.querySelector('#loginPass').value===ADMIN_PASSWORD){ const authed = await ensureAuthForWrite(); if(authed){ isAdminLoggedIn=true; ov.remove(); document.getElementById('adminView').classList.add('active-view'); document.getElementById('galleryView').classList.remove('active-view'); document.getElementById('aboutView').classList.remove('active-view'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.querySelector('[data-view="admin"]').classList.add('active'); renderAdminList(); } else { ov.querySelector('#loginErr').innerText="Falha na autenticação Firebase."; } }else{ ov.querySelector('#loginErr').innerText="Credenciais inválidas"; } }; ov.querySelector('#loginBtn').onclick=login; ov.querySelector('#loginPass').addEventListener('keypress',e=>{if(e.key==='Enter')login();}); }
     function initNav(){ document.querySelectorAll('.nav-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ const v=btn.getAttribute('data-view'); if(v==='admin' && !isAdminLoggedIn){ showLoginModal(); return; } document.querySelectorAll('.view').forEach(vw=>vw.classList.remove('active-view')); document.getElementById(`${v}View`).classList.add('active-view'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); if(v==='admin' && isAdminLoggedIn) renderAdminList(); }); }); adminLogoutBtn.addEventListener('click',()=>{ isAdminLoggedIn=false; alert("Logout"); document.querySelector('[data-view="gallery"]').click(); }); }
     const menuToggle=document.getElementById('menuToggle'), floatingMenu=document.getElementById('floatingMenu'); menuToggle.addEventListener('click',()=>floatingMenu.classList.toggle('open'));
     const backBtn=document.getElementById('backToTop'); window.addEventListener('scroll',()=>{ backBtn.classList.toggle('show',window.scrollY>300); }); backBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
