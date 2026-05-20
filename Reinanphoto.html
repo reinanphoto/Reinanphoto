@@ -67,9 +67,9 @@
         }
         
         .logo-header .logo-img {
-            height: 45px;
+            height: 65px;
             width: auto;
-            max-width: 120px;
+            max-width: 160px;
             object-fit: contain;
             background: transparent;
             border-radius: 8px;
@@ -160,27 +160,28 @@
             margin-bottom: 1rem;
         }
         
-        /* Grid de imagens estilo mosaico */
+        /* Grid de imagens estilo mosaico - SEM ESPAÇOS (grudados) */
         .box-images {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 0 1rem;
+            padding: 0;
         }
         
         .cena-03 {
             display: flex;
             flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1rem;
+            gap: 0;
+            margin-bottom: 0;
         }
         
         .cena-03 .box-img {
-            flex: 1 1 calc(20% - 1rem);
+            flex: 1 1 calc(20%);
             min-width: 150px;
             overflow: hidden;
             cursor: pointer;
             transition: all 0.4s ease;
             position: relative;
+            aspect-ratio: auto;
         }
         
         .cena-03 .box-img img,
@@ -198,7 +199,7 @@
         }
         
         .cena-01 {
-            margin-bottom: 2rem;
+            margin-bottom: 0;
             overflow: hidden;
             cursor: pointer;
             position: relative;
@@ -218,7 +219,7 @@
             transform: scale(1.01);
         }
         
-        /* Legenda */
+        /* Legenda - só aparece se tiver texto */
         .media-caption-badge {
             position: absolute;
             bottom: 10px;
@@ -231,6 +232,11 @@
             color: white;
             font-family: 'Inter', sans-serif;
             pointer-events: none;
+            display: none;
+        }
+        
+        .media-caption-badge.has-caption {
+            display: block;
         }
         
         /* Mobile */
@@ -240,7 +246,7 @@
         
         /* Footer */
         .footer {
-            margin-top: 4rem;
+            margin-top: 0;
             padding: 3rem 2rem 1rem;
             border-top: 1px solid #eaeaea;
         }
@@ -256,9 +262,9 @@
         }
         
         .logo-footer-img {
-            height: 40px;
+            height: 55px;
             width: auto;
-            max-width: 100px;
+            max-width: 140px;
             object-fit: contain;
         }
         
@@ -290,7 +296,7 @@
         /* Responsividade */
         @media (max-width: 1024px) {
             .cena-03 .box-img {
-                flex: 1 1 calc(33.333% - 1rem);
+                flex: 1 1 calc(33.333%);
             }
         }
         
@@ -299,17 +305,21 @@
                 padding: 1rem;
             }
             
+            .logo-header .logo-img {
+                height: 50px;
+            }
+            
             .title-editorial {
                 font-size: 2rem;
                 padding: 0 1rem;
             }
             
             .cena-03 .box-img {
-                flex: 1 1 calc(50% - 0.5rem);
+                flex: 1 1 calc(50%);
             }
             
             .cena-03 {
-                gap: 0.5rem;
+                gap: 0;
             }
             
             .box-images {
@@ -318,13 +328,13 @@
             
             .box-images-mobile {
                 display: block;
-                padding: 0 1rem;
+                padding: 0;
             }
             
             .grid-cenas {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
-                gap: 0.5rem;
+                gap: 0;
             }
             
             .cena-item {
@@ -383,7 +393,6 @@
         button.secondary { background: #eaeaea; color: #111; }
         button.secondary:hover { background: #ff6b6b; color: white; }
         
-        /* Menu flutuante removido, agora integrado ao menu sanduíche */
         .view { display: none; animation: fadeIn 0.3s ease; }
         .view.active-view { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
@@ -394,11 +403,33 @@
         
         .login-overlay, .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(12px); z-index: 2000; display: flex; justify-content: center; align-items: center; }
         .login-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 40px; padding: 2rem; width: 90%; max-width: 360px; text-align: center; }
-        .modal-content { background: transparent; max-width: 90vw; max-height: 90vh; }
-        .zoom-controls { background: rgba(30,30,30,0.7); backdrop-filter: blur(12px); border-radius: 48px; padding: 6px 12px; display: flex; gap: 16px; }
-        .modal-img-container { background: rgba(0,0,0,0.5); border-radius: 28px; overflow: auto; max-width: 90vw; max-height: 80vh; }
-        #modalImage, #modalVideo { max-width: 100%; max-height: 80vh; display: block; margin: auto; }
-        .close-modal { background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; }
+        .modal-content { background: transparent; max-width: 90vw; max-height: 90vh; position: relative; }
+        .zoom-controls { background: rgba(30,30,30,0.7); backdrop-filter: blur(12px); border-radius: 48px; padding: 6px 12px; display: flex; gap: 16px; position: absolute; top: -50px; right: 0; z-index: 10; }
+        .modal-img-container { background: rgba(0,0,0,0.5); border-radius: 28px; overflow: hidden; max-width: 90vw; max-height: 80vh; position: relative; }
+        .gallery-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            height: 80vh;
+            max-height: 80vh;
+        }
+        .gallery-slide {
+            flex: 0 0 100%;
+            scroll-snap-align: start;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.5);
+        }
+        .gallery-slide img, .gallery-slide video {
+            max-width: 100%;
+            max-height: 80vh;
+            display: block;
+            margin: auto;
+        }
+        .close-modal { background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; position: absolute; top: -50px; left: 0; }
         .close-modal:hover { background: #ff6b6b; transform: scale(1.05); }
         
         .admin-photo-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 0; border-bottom: 1px solid #f0f0f0; flex-wrap: wrap; }
@@ -409,6 +440,28 @@
         
         .warning-banner { background: #fff3cd; color: #856404; padding: 8px 16px; border-radius: 12px; margin-bottom: 1rem; font-size: 0.8rem; text-align: center; }
         .about-text { max-width: 800px; margin: 2rem auto; text-align: center; font-size: 1.1rem; line-height: 1.6; padding: 0 2rem; }
+        
+        .nav-indicator {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            transition: all 0.3s;
+        }
+        .nav-dot.active {
+            background: white;
+            width: 20px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -416,7 +469,7 @@
 <!-- HEADER -->
 <div class="header-main">
     <div class="logo-header">
-        <img id="siteLogo" class="logo-img" src="" alt="logo" style="height:45px;">
+        <img id="siteLogo" class="logo-img" src="" alt="logo">
     </div>
     <button class="menu-toggle-btn" id="menuToggleBtn">
         <span></span>
@@ -485,7 +538,7 @@
         </div>
         <div class="admin-panel"><h3><i class="fas fa-upload"></i> Adicionar nova mídia (Foto ou Vídeo)</h3>
             <div class="form-group"><label>Arquivo (imagem ou vídeo)</label><input type="file" id="mediaFile" accept="image/*,video/*"></div>
-            <div class="form-group"><label>Legenda</label><input type="text" id="mediaCaption" placeholder="Descrição da mídia"></div>
+            <div class="form-group"><label>Legenda</label><input type="text" id="mediaCaption" placeholder="Descrição (opcional)"></div>
             <button id="uploadMediaBtn">Upload</button>
             <div id="uploadStatus" style="margin-top:10px; font-size:0.8rem;"></div>
         </div>
@@ -496,14 +549,19 @@
 <!-- BACK TO TOP -->
 <div class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></div>
 
-<!-- LIGHTBOX MODAL -->
+<!-- LIGHTBOX MODAL COM SWIPE -->
 <div id="lightboxModal" class="modal" style="display: none;">
     <div class="modal-content">
-        <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 12px;">
-            <div class="zoom-controls"><button id="zoomInBtn"><i class="fas fa-search-plus"></i></button><button id="zoomOutBtn"><i class="fas fa-search-minus"></i></button><button id="zoomResetBtn"><i class="fas fa-undo-alt"></i></button></div>
-            <div class="close-modal" id="closeModalBtn"><i class="fas fa-times"></i></div>
+        <div class="zoom-controls">
+            <button id="zoomInBtn"><i class="fas fa-search-plus"></i></button>
+            <button id="zoomOutBtn"><i class="fas fa-search-minus"></i></button>
+            <button id="zoomResetBtn"><i class="fas fa-undo-alt"></i></button>
         </div>
-        <div class="modal-img-container"><img id="modalImage" src="" alt="zoom" style="display:none;"><video id="modalVideo" controls style="display:none;"></video></div>
+        <div class="close-modal" id="closeModalBtn"><i class="fas fa-times"></i></div>
+        <div class="modal-img-container">
+            <div id="gallerySlider" class="gallery-slider"></div>
+            <div id="navDots" class="nav-indicator"></div>
+        </div>
     </div>
 </div>
 
@@ -555,6 +613,8 @@
     let contacts = { whatsapp: "+351912345678", phone: "+351912345678", instagram: "@reinanphoto", address: "Rua da Fotografia, 123 - Lisboa" };
     let aboutHtml = "";
     let currentLogoUrl = "";
+    let currentSlideIndex = 0;
+    let currentSlider = null;
     
     // DOM elements
     const photoGridDesktop = document.getElementById('photoGridDesktop');
@@ -645,36 +705,106 @@
     async function saveAboutContent() { const newContent = aboutEditor.value; if(!newContent) return; aboutHtml = newContent; if(db && await ensureAuthForWrite()){ try{ const { setDoc, doc }=window.dbHelpers; await setDoc(doc(db,"settings","about"), { content: aboutHtml }); renderAbout(); alert("Conteúdo 'Sobre' atualizado!"); } catch(e){ alert("Erro ao salvar: "+e.message); } } else { alert("Necessário autenticação."); } }
     function renderAbout() { if(aboutContentDiv) aboutContentDiv.innerHTML = aboutHtml; }
     
-    async function uploadNewMedia(){ const file=mediaFile.files[0], cap=mediaCaption.value.trim(); if(!file){ uploadStatus.innerText="Selecione um arquivo"; return; } uploadStatus.innerText="Enviando..."; try{ const url=await uploadToCloudinary(file); const type = file.type.startsWith('image/') ? 'image' : 'video'; if(db && await ensureAuthForWrite()){ const { addDoc, collection }=window.dbHelpers; await addDoc(collection(db,"media"),{url:url,caption:cap||"Sem legenda",type:type,createdAt:new Date().toISOString()}); uploadStatus.innerText="Publicada com sucesso!"; mediaFile.value=""; mediaCaption.value=""; setTimeout(()=>uploadStatus.innerText="",3000); } else { throw new Error("Falha na autenticação"); } }catch(e){ uploadStatus.innerText="Erro: "+e.message; console.error(e); } }
-    async function editMedia(mediaId, newCaption, newFile) { let newUrl = null; let newType = null; if(newFile) { newUrl = await uploadToCloudinary(newFile); newType = newFile.type.startsWith('image/') ? 'image' : 'video'; } if(db && await ensureAuthForWrite()){ const { updateDoc, doc }=window.dbHelpers; const updates = { caption: newCaption }; if(newUrl) { updates.url = newUrl; updates.type = newType; } await updateDoc(doc(db,"media",mediaId), updates); } else { alert("Falha na autenticação para editar"); } }
+    async function uploadNewMedia(){ const file=mediaFile.files[0], cap=mediaCaption.value.trim(); if(!file){ uploadStatus.innerText="Selecione um arquivo"; return; } uploadStatus.innerText="Enviando..."; try{ const url=await uploadToCloudinary(file); const type = file.type.startsWith('image/') ? 'image' : 'video'; if(db && await ensureAuthForWrite()){ const { addDoc, collection }=window.dbHelpers; await addDoc(collection(db,"media"),{url:url,caption:cap||"",type:type,createdAt:new Date().toISOString()}); uploadStatus.innerText="Publicada com sucesso!"; mediaFile.value=""; mediaCaption.value=""; setTimeout(()=>uploadStatus.innerText="",3000); } else { throw new Error("Falha na autenticação"); } }catch(e){ uploadStatus.innerText="Erro: "+e.message; console.error(e); } }
+    async function editMedia(mediaId, newCaption, newFile) { let newUrl = null; let newType = null; if(newFile) { newUrl = await uploadToCloudinary(newFile); newType = newFile.type.startsWith('image/') ? 'image' : 'video'; } if(db && await ensureAuthForWrite()){ const { updateDoc, doc }=window.dbHelpers; const updates = { caption: newCaption || "" }; if(newUrl) { updates.url = newUrl; updates.type = newType; } await updateDoc(doc(db,"media",mediaId), updates); } else { alert("Falha na autenticação para editar"); } }
     async function deleteMedia(mediaId) { if(db && await ensureAuthForWrite()){ const { deleteDoc, doc }=window.dbHelpers; await deleteDoc(doc(db,"media",mediaId)); } else { alert("Falha na autenticação para excluir"); } }
     
-    function subscribeToMedia(){ if(!db) return; const { onSnapshot, collection, query, orderBy }=window.dbHelpers; onSnapshot(query(collection(db,"media"),orderBy("createdAt","desc")), (snap) => { allMedia = snap.docs.map(d=>({id:d.id,url:d.data().url,caption:d.data().caption,type:d.data().type})); renderGallery(); if(isAdminLoggedIn) renderAdminList(); 
+    function subscribeToMedia(){ if(!db) return; const { onSnapshot, collection, query, orderBy }=window.dbHelpers; onSnapshot(query(collection(db,"media"),orderBy("createdAt","desc")), (snap) => { allMedia = snap.docs.map(d=>({id:d.id,url:d.data().url,caption:d.data().caption||"",type:d.data().type})); renderGallery(); if(isAdminLoggedIn) renderAdminList(); 
         const urlParams = new URLSearchParams(window.location.search);
         const shareId = urlParams.get('id');
         if (shareId) {
-            const media = allMedia.find(m => m.id === shareId);
-            if (media) { setTimeout(() => openLightbox(media.url, media.type), 500); window.history.replaceState({}, '', window.location.pathname); }
+            const index = allMedia.findIndex(m => m.id === shareId);
+            if (index !== -1) { setTimeout(() => openLightboxWithGallery(index), 500); window.history.replaceState({}, '', window.location.pathname); }
         }
     }, (error) => { console.error("Firestore read error:", error); warningDiv.style.display = 'block'; warningDiv.innerText = 'Erro ao ler dados do Firebase.'; });
     }
     
-    function openLightbox(url, type) {
+    function openLightboxWithGallery(startIndex = 0) {
         const modal = document.getElementById('lightboxModal');
-        const imgEl = document.getElementById('modalImage');
-        const videoEl = document.getElementById('modalVideo');
-        imgEl.style.display = 'none'; videoEl.style.display = 'none'; if(videoEl.pause) videoEl.pause();
-        if(type === 'image') { imgEl.src = url; imgEl.style.display = 'block'; }
-        else { videoEl.src = url; videoEl.style.display = 'block'; videoEl.controls = true; videoEl.play().catch(()=>{}); }
+        const slider = document.getElementById('gallerySlider');
+        const navDots = document.getElementById('navDots');
+        
+        if (!allMedia.length) return;
+        
+        slider.innerHTML = '';
+        allMedia.forEach((media, idx) => {
+            const slide = document.createElement('div');
+            slide.className = 'gallery-slide';
+            if (media.type === 'image') {
+                const img = document.createElement('img');
+                img.src = media.url;
+                img.alt = escapeHtml(media.caption);
+                slide.appendChild(img);
+            } else {
+                const video = document.createElement('video');
+                video.src = media.url;
+                video.controls = true;
+                video.playsInline = true;
+                slide.appendChild(video);
+            }
+            slider.appendChild(slide);
+        });
+        
+        navDots.innerHTML = '';
+        allMedia.forEach((_, idx) => {
+            const dot = document.createElement('div');
+            dot.className = 'nav-dot';
+            if (idx === startIndex) dot.classList.add('active');
+            dot.addEventListener('click', () => {
+                slider.scrollTo({ left: slider.clientWidth * idx, behavior: 'smooth' });
+                updateActiveDot(idx);
+            });
+            navDots.appendChild(dot);
+        });
+        
         modal.style.display = 'flex';
-        let zoom = 1;
-        const updateZoom = () => { if(type==='image') imgEl.style.transform = `scale(${zoom})`; };
-        const zi = document.getElementById('zoomInBtn'), zo = document.getElementById('zoomOutBtn'), zr = document.getElementById('zoomResetBtn');
-        zi.onclick = () => { if(type==='image'){ zoom = Math.min(zoom+0.25,3.5); updateZoom(); } };
-        zo.onclick = () => { if(type==='image'){ zoom = Math.max(zoom-0.25,0.6); updateZoom(); } };
-        zr.onclick = () => { if(type==='image'){ zoom=1; updateZoom(); } };
+        
+        const updateActiveDot = (index) => {
+            document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+                if (i === index) dot.classList.add('active');
+                else dot.classList.remove('active');
+            });
+        };
+        
+        const onScroll = () => {
+            const scrollLeft = slider.scrollLeft;
+            const slideWidth = slider.clientWidth;
+            const newIndex = Math.round(scrollLeft / slideWidth);
+            if (newIndex !== currentSlideIndex) {
+                currentSlideIndex = newIndex;
+                updateActiveDot(currentSlideIndex);
+                // Pausar vídeos não visíveis
+                const videos = slider.querySelectorAll('video');
+                videos.forEach((video, i) => {
+                    if (i === currentSlideIndex) video.play().catch(()=>{});
+                    else { video.pause(); video.currentTime = 0; }
+                });
+            }
+        };
+        
+        slider.addEventListener('scroll', onScroll);
+        slider.scrollTo({ left: slider.clientWidth * startIndex, behavior: 'auto' });
+        currentSlideIndex = startIndex;
+        updateActiveDot(startIndex);
+        
+        let touchStartX = 0;
+        slider.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+        slider.addEventListener('touchend', (e) => {});
+        
         document.getElementById('closeModalBtn').onclick = () => modal.style.display = 'none';
         modal.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
+        
+        let zoom = 1;
+        const currentImg = () => {
+            const slide = slider.children[currentSlideIndex];
+            if(slide) return slide.querySelector('img');
+            return null;
+        };
+        const updateZoom = () => { const img = currentImg(); if(img) img.style.transform = `scale(${zoom})`; };
+        const zi = document.getElementById('zoomInBtn'), zo = document.getElementById('zoomOutBtn'), zr = document.getElementById('zoomResetBtn');
+        zi.onclick = () => { zoom = Math.min(zoom+0.25,3.5); updateZoom(); };
+        zo.onclick = () => { zoom = Math.max(zoom-0.25,0.6); updateZoom(); };
+        zr.onclick = () => { zoom=1; updateZoom(); };
     }
     
     function renderGallery() {
@@ -687,9 +817,10 @@
         let desktopHtml = ``;
         let firstMedia = allMedia[0];
         if(firstMedia) {
-            desktopHtml = `<div class="cena-01" data-id="${firstMedia.id}" data-url="${firstMedia.url}" data-type="${firstMedia.type}" data-caption="${escapeHtml(firstMedia.caption)}">
+            const captionClass = firstMedia.caption ? 'has-caption' : '';
+            desktopHtml = `<div class="cena-01" data-index="0" data-id="${firstMedia.id}">
                 ${firstMedia.type === 'image' ? `<img src="${firstMedia.url}" alt="${escapeHtml(firstMedia.caption)}">` : `<video src="${firstMedia.url}" muted loop playsinline></video>`}
-                <div class="media-caption-badge">${escapeHtml(firstMedia.caption) || ''}</div>
+                <div class="media-caption-badge ${captionClass}">${escapeHtml(firstMedia.caption) || ''}</div>
             </div>`;
         }
         
@@ -698,10 +829,12 @@
         for(let i = 0; i < remainingMedia.length; i += chunkSize) {
             const chunk = remainingMedia.slice(i, i + chunkSize);
             desktopHtml += `<div class="cena-03">`;
-            chunk.forEach(media => {
-                desktopHtml += `<div class="box-img" data-id="${media.id}" data-url="${media.url}" data-type="${media.type}" data-caption="${escapeHtml(media.caption)}">
+            chunk.forEach((media, idx) => {
+                const captionClass = media.caption ? 'has-caption' : '';
+                const globalIdx = i + idx + 1;
+                desktopHtml += `<div class="box-img" data-index="${globalIdx}" data-id="${media.id}">
                     ${media.type === 'image' ? `<img src="${media.url}" alt="${escapeHtml(media.caption)}">` : `<video src="${media.url}" muted loop playsinline></video>`}
-                    <div class="media-caption-badge">${escapeHtml(media.caption) || ''}</div>
+                    <div class="media-caption-badge ${captionClass}">${escapeHtml(media.caption) || ''}</div>
                 </div>`;
             });
             desktopHtml += `</div>`;
@@ -709,10 +842,11 @@
         if(photoGridDesktop) photoGridDesktop.innerHTML = desktopHtml;
         
         let mobileHtml = `<div class="grid-cenas">`;
-        allMedia.forEach(media => {
-            mobileHtml += `<div class="cena-item" data-id="${media.id}" data-url="${media.url}" data-type="${media.type}" data-caption="${escapeHtml(media.caption)}">
+        allMedia.forEach((media, idx) => {
+            const captionClass = media.caption ? 'has-caption' : '';
+            mobileHtml += `<div class="cena-item" data-index="${idx}" data-id="${media.id}">
                 ${media.type === 'image' ? `<img src="${media.url}" alt="${escapeHtml(media.caption)}">` : `<video src="${media.url}" muted loop playsinline></video>`}
-                <div class="media-caption-badge">${escapeHtml(media.caption) || ''}</div>
+                <div class="media-caption-badge ${captionClass}">${escapeHtml(media.caption) || ''}</div>
             </div>`;
         });
         mobileHtml += `</div>`;
@@ -721,8 +855,8 @@
         document.querySelectorAll('.cena-01, .box-img, .cena-item').forEach(el => {
             el.style.cursor = 'pointer';
             el.addEventListener('click', (e) => {
-                const media = allMedia.find(m => m.id === el.getAttribute('data-id'));
-                if(media) openLightbox(media.url, media.type);
+                const index = parseInt(el.getAttribute('data-index'));
+                if (!isNaN(index)) openLightboxWithGallery(index);
             });
         });
         
@@ -745,7 +879,18 @@
         if(menuInsta) menuInsta.href = `https://instagram.com/${contacts.instagram.replace('@','')}`;
         if(menuWhats) menuWhats.href = `https://wa.me/${contacts.whatsapp.replace(/[^0-9+]/g,'')}`;
         if(menuCall) menuCall.href = `tel:${contacts.phone.replace(/[^0-9+]/g,'')}`;
-        if(menuAddress) menuAddress.onclick = (e) => { e.preventDefault(); alert(`📍 ${contacts.address}`); };
+        if(menuAddress) {
+            const addressEncoded = encodeURIComponent(contacts.address);
+            menuAddress.onclick = (e) => {
+                e.preventDefault();
+                const choice = confirm("Escolher app de navegação:\nOK = Google Maps\nCancelar = Waze");
+                if (choice) {
+                    window.open(`https://www.google.com/maps/search/?api=1&query=${addressEncoded}`, '_blank');
+                } else {
+                    window.open(`https://waze.com/ul?q=${addressEncoded}`, '_blank');
+                }
+            };
+        }
         if(footerInsta) footerInsta.href = `https://instagram.com/${contacts.instagram.replace('@','')}`;
         if(footerWhats) footerWhats.href = `https://wa.me/${contacts.whatsapp.replace(/[^0-9+]/g,'')}`;
     }
@@ -788,19 +933,12 @@
     const closeMenuBtn = document.getElementById('closeMenuBtn');
     
     if(menuToggleBtn) {
-        menuToggleBtn.addEventListener('click', () => {
-            sideMenu.classList.add('open');
-        });
+        menuToggleBtn.addEventListener('click', () => { sideMenu.classList.add('open'); });
     }
     if(closeMenuBtn) {
-        closeMenuBtn.addEventListener('click', () => {
-            sideMenu.classList.remove('open');
-        });
+        closeMenuBtn.addEventListener('click', () => { sideMenu.classList.remove('open'); });
     }
-    // Fechar ao clicar fora
-    sideMenu.addEventListener('click', (e) => {
-        if(e.target === sideMenu) sideMenu.classList.remove('open');
-    });
+    sideMenu.addEventListener('click', (e) => { if(e.target === sideMenu) sideMenu.classList.remove('open'); });
     
     const backBtn=document.getElementById('backToTop'); window.addEventListener('scroll',()=>{ if(backBtn) backBtn.classList.toggle('show',window.scrollY>300); }); if(backBtn) backBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
     
