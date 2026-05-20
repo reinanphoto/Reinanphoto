@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -20,9 +21,15 @@
             \"type\": \"image/svg+xml\"
         }]
     }">
-    <title>Reinan Photo | Portfolio</title>
+    <title>Reinan Photo | Portfolio Fotográfico</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, doc, getDocs, addDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        window.firebaseAppInstance = { initializeApp, getFirestore, collection, doc, getDocs, addDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDoc, setDoc };
+    </script>
     <style>
         * {
             margin: 0;
@@ -32,7 +39,7 @@
         }
         body {
             font-family: 'Inter', sans-serif;
-            background: #ffffff;
+            background-color: #ffffff;
             color: #000000;
             line-height: 1.5;
             overflow-x: hidden;
@@ -54,33 +61,26 @@
             gap: 1rem;
         }
         .brand { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
-        .logo-img { height: 45px; width: auto; max-width: 100px; object-fit: contain; border-radius: 10px; padding: 4px; background: #f5f5f5; }
-        .title-group h1 { font-size: 1.5rem; font-weight: 500; }
-        .subtitle { font-size: 0.75rem; font-weight: 300; color: #3a3a3a; }
+        .logo-img { height: 45px; width: auto; max-width: 100px; object-fit: contain; background: #f5f5f5; border-radius: 10px; padding: 4px; }
+        .title-group h1 { font-size: 1.5rem; font-weight: 500; letter-spacing: -0.5px; }
+        .subtitle { font-size: 0.75rem; font-weight: 300; color: #3a3a3a; margin-top: 2px; }
         .main-nav { display: flex; gap: 1.2rem; flex-wrap: wrap; }
-        .nav-btn {
-            background: none; border: none; font-size: 0.9rem; font-weight: 500;
-            cursor: pointer; padding: 0.4rem 0; color: #2c2c2c;
-            transition: all 0.3s; border-bottom: 2px solid transparent;
-        }
+        .nav-btn { background: none; border: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; padding: 0.4rem 0; color: #2c2c2c; transition: all 0.3s ease; border-bottom: 2px solid transparent; }
         .nav-btn.active { border-bottom-color: #000; color: #000; }
         .nav-btn:hover { color: #ff6b6b; transform: translateY(-2px); }
-        .view { display: none; animation: fadeIn 0.3s; }
+        .view { display: none; animation: fadeIn 0.3s ease; }
         .view.active-view { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Grid responsivo */
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+        .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
         .photo-card {
+            position: relative;
             background: #fafafa;
             border-radius: 20px;
             overflow: hidden;
             transition: transform 0.3s, box-shadow 0.3s;
             box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
         }
         .photo-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
         .media-wrapper {
@@ -88,20 +88,25 @@
             cursor: pointer;
             overflow: hidden;
             background: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .media-wrapper img, .media-wrapper video {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            transition: filter 0.4s;
         }
-        .photo-img { filter: grayscale(100%); }
+        .photo-img, .video-media {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: filter 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+        .photo-img {
+            filter: grayscale(100%);
+        }
         .photo-img:hover { filter: grayscale(0%); }
         .photo-img.forced-color { filter: grayscale(0%) !important; }
+        .video-media {
+            filter: grayscale(100%);
+            transition: filter 0.4s;
+        }
+        .video-media:hover { filter: grayscale(0%); }
+        .video-media.forced-color { filter: grayscale(0%) !important; }
         .btn-life, .btn-share {
             position: absolute;
             bottom: 10px;
@@ -122,69 +127,59 @@
         }
         .btn-life { right: 10px; }
         .btn-share { left: 10px; }
-        .btn-life:hover, .btn-share:hover { background: #ff6b6b; transform: scale(1.05); }
-        .photo-caption { padding: 10px 12px; font-size: 0.8rem; font-weight: 400; border-top: 1px solid #efefef; background: white; }
-        
+        .btn-life:hover, .btn-share:hover { background: #ff6b6b; transform: scale(1.05); color: white; }
+        .media-caption { padding: 10px 12px; font-size: 0.8rem; font-weight: 400; color: #1f1f1f; border-top: 1px solid #efefef; background: white; }
         /* Admin */
-        .admin-panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 24px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .admin-panel { background: #ffffff; border: 1px solid #e0e0e0; border-radius: 24px; padding: 1.5rem; margin-bottom: 1.5rem; }
         .form-group { margin-bottom: 1.2rem; }
         label { font-weight: 500; display: block; margin-bottom: 6px; font-size: 0.85rem; }
-        input, textarea { width: 100%; padding: 12px 14px; border: 1px solid #ccc; border-radius: 14px; font-size: 16px; transition: 0.3s; }
+        input, textarea { width: 100%; padding: 12px 14px; border: 1px solid #ccc; border-radius: 14px; font-family: 'Inter', sans-serif; background: #fff; font-size: 16px; transition: all 0.3s; }
         input:focus, textarea:focus { border-color: #ff6b6b; outline: none; box-shadow: 0 0 0 3px rgba(255,107,107,0.1); }
-        button {
-            background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
-            color: white; border: none; padding: 10px 22px; border-radius: 40px;
-            font-weight: 500; cursor: pointer; transition: 0.3s;
-        }
+        button { background: linear-gradient(135deg, #2c2c2c, #1a1a1a); color: white; border: none; padding: 10px 22px; border-radius: 40px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; font-size: 0.85rem; }
         button:hover { background: linear-gradient(135deg, #ff6b6b, #ff4757); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,107,107,0.3); }
-        .admin-photo-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 0; border-bottom: 1px solid #f0f0f0; flex-wrap: wrap; }
-        .admin-photo-item img, .admin-photo-item video { width: 60px; height: 60px; object-fit: cover; border-radius: 12px; }
-        .edit-photo-btn, .delete-photo-btn { padding: 6px 14px; margin-left: 5px; font-size: 0.75rem; }
-        
-        /* Menu flutuante */
+        button.secondary { background: #eaeaea; color: #111; }
+        button.secondary:hover { background: #ff6b6b; color: white; }
         .floating-menu { position: fixed; bottom: 25px; right: 20px; z-index: 999; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
-        .floating-btn {
-            width: 55px; height: 55px; border-radius: 30px;
-            background: rgba(255,255,255,0.25); backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.4);
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.3s; color: #1a1a1a; font-size: 1.4rem;
-            text-decoration: none;
-        }
-        .floating-btn.main-btn { background: rgba(0,0,0,0.75); color: white; }
-        .floating-btn.social-item { transform: scale(0); opacity: 0; pointer-events: none; background: rgba(30,30,30,0.7); color: white; }
+        .floating-btn { width: 55px; height: 55px; border-radius: 30px; background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; color: #1a1a1a; font-size: 1.4rem; text-decoration: none; }
+        .floating-btn.main-btn { background: rgba(0, 0, 0, 0.75); color: white; }
+        .floating-btn.social-item { transform: scale(0); opacity: 0; pointer-events: none; background: rgba(30, 30, 30, 0.7); color: white; }
         .floating-menu.open .social-item { transform: scale(1); opacity: 1; pointer-events: auto; }
         .floating-btn:hover { transform: scale(1.08); background: #ff6b6b; color: white; }
-        .back-to-top {
-            position: fixed; bottom: 25px; left: 20px; width: 48px; height: 48px;
-            border-radius: 30px; background: rgba(0,0,0,0.65); backdrop-filter: blur(10px);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; z-index: 999; transition: 0.3s; color: white;
-            opacity: 0; visibility: hidden;
-        }
+        .back-to-top { position: fixed; bottom: 25px; left: 20px; width: 48px; height: 48px; border-radius: 30px; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 999; transition: all 0.3s; color: white; opacity: 0; visibility: hidden; }
         .back-to-top.show { opacity: 1; visibility: visible; }
-        .back-to-top:hover { background: #ff6b6b; }
-        .login-overlay, .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92); backdrop-filter: blur(12px);
-            z-index: 2000; display: flex; justify-content: center; align-items: center;
-        }
+        .back-to-top:hover { background: #ff6b6b; transform: scale(1.05); }
+        .login-overlay, .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(12px); z-index: 2000; display: flex; justify-content: center; align-items: center; }
         .login-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 40px; padding: 2rem; width: 90%; max-width: 360px; text-align: center; }
         .modal-content { background: transparent; max-width: 90vw; max-height: 90vh; }
         .zoom-controls { background: rgba(30,30,30,0.7); backdrop-filter: blur(12px); border-radius: 48px; padding: 6px 12px; display: flex; gap: 16px; }
         .modal-img-container { background: rgba(0,0,0,0.5); border-radius: 28px; overflow: auto; max-width: 90vw; max-height: 80vh; }
-        #modalImage { transition: transform 0.2s; display: block; max-width: 100%; }
+        #modalImage, #modalVideo { max-width: 100%; max-height: 80vh; display: block; margin: auto; }
+        .close-modal { background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; }
+        .close-modal:hover { background: #ff6b6b; transform: scale(1.05); }
         .about-text { max-width: 680px; margin: 2rem auto; font-size: 1rem; line-height: 1.6; text-align: center; padding: 0 1rem; }
+        .admin-photo-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 0; border-bottom: 1px solid #f0f0f0; flex-wrap: wrap; }
+        .admin-photo-item img, .admin-photo-item video { width: 55px; height: 55px; object-fit: cover; border-radius: 12px; }
+        .edit-photo-btn, .delete-photo-btn { padding: 6px 14px; margin-left: 5px; font-size: 0.75rem; }
+        .edit-photo-btn { background: #4a4a4a; }
+        .edit-photo-btn:hover { background: #ffa502; }
         @media (max-width: 768px) {
-            .photo-grid { grid-template-columns: 1fr; gap: 1rem; }
-            .floating-btn { width: 48px; height: 48px; }
+            .app-container { padding: 1rem 1rem 5rem; }
+            .photo-grid { gap: 0.8rem; }
+            .site-header { flex-direction: column; align-items: stretch; }
+            .main-nav { justify-content: center; }
+            .floating-btn { width: 48px; height: 48px; font-size: 1.2rem; }
+            .back-to-top { width: 44px; height: 44px; bottom: 20px; left: 15px; }
+        }
+        @media (max-width: 480px) {
+            .btn-life, .btn-share { font-size: 0.6rem; padding: 4px 8px; }
+            .media-caption { font-size: 0.7rem; padding: 8px 10px; }
         }
     </style>
 </head>
 <body>
 <div class="app-container">
     <header class="site-header">
-        <div class="brand"><img id="siteLogo" class="logo-img" src="" alt="logo"><div class="title-group"><h1 id="siteTitle">Reinan Photo</h1><div id="siteSubtitle" class="subtitle"></div></div></div>
+        <div class="brand"><img id="siteLogo" class="logo-img" src="" alt="logo"><div class="title-group"><h1 id="siteTitle">Reinan Photo</h1><div id="siteSubtitle" class="subtitle">fotografia & sentimentos</div></div></div>
         <nav class="main-nav">
             <button class="nav-btn active" data-view="gallery"><i class="fas fa-images"></i> Portfólio</button>
             <button class="nav-btn" data-view="about"><i class="fas fa-camera"></i> Sobre</button>
@@ -192,29 +187,22 @@
         </nav>
     </header>
     <div id="galleryView" class="view active-view"><div id="photoGrid" class="photo-grid"></div></div>
-    <div id="aboutView" class="view"><div id="aboutContent" class="about-text"></div></div>
+    <div id="aboutView" class="view"><div id="aboutContent" class="about-text"><i class="fas fa-camera-retro" style="font-size: 2rem; margin-bottom: 1rem;"></i><h2 style="font-weight: 400;">Reinan Photo</h2><p>Carregando...</p></div></div>
     <div id="adminView" class="view">
         <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;"><button id="adminLogoutBtn" style="background:#eee; color:#333;"><i class="fas fa-sign-out-alt"></i> Sair</button></div>
-        <div class="admin-panel"><h3><i class="fas fa-sliders-h"></i> Configurações</h3><div class="form-group"><label>Nome do site</label><input type="text" id="adminSiteTitle"></div><div class="form-group"><label>Subtítulo</label><input type="text" id="adminSubtitle"></div><div class="form-group"><label>Logo (imagem)</label><input type="file" id="logoUpload" accept="image/*"><button id="saveLogoBtn" style="margin-top:8px;">Salvar Logo</button></div><button id="saveSiteSettingsBtn">Salvar</button></div>
-        <div class="admin-panel"><h3><i class="fas fa-edit"></i> Editar "Sobre"</h3><textarea id="aboutEditor" rows="6" placeholder="Escreva sua biografia..."></textarea><button id="saveAboutBtn" style="margin-top:10px;">Salvar</button></div>
-        <div class="admin-panel"><h3><i class="fas fa-share-alt"></i> Contatos</h3><div class="form-group"><label>WhatsApp</label><input type="tel" id="adminWhatsapp"></div><div class="form-group"><label>Telefone</label><input type="tel" id="adminPhone"></div><div class="form-group"><label>Instagram</label><input type="text" id="adminInstagram"></div><div class="form-group"><label>Endereço</label><input type="text" id="adminAddress"></div><button id="saveContactsBtn">Salvar</button></div>
-        <div class="admin-panel"><h3><i class="fas fa-upload"></i> Nova Mídia (Imagem ou Vídeo)</h3><div class="form-group"><label>Arquivo</label><input type="file" id="mediaFile" accept="image/*,video/*"></div><div class="form-group"><label>Legenda</label><input type="text" id="mediaCaption"></div><button id="uploadMediaBtn">Enviar</button><div id="uploadStatus" style="margin-top:10px; font-size:0.8rem;"></div></div>
-        <div class="admin-panel"><h3>Gerenciar Mídias</h3><div id="adminPhotoList"></div></div>
+        <div class="admin-panel"><h3><i class="fas fa-sliders-h"></i> Configurações do Site</h3><div class="form-group"><label>Nome do site</label><input type="text" id="adminSiteTitle"></div><div class="form-group"><label>Subtítulo</label><input type="text" id="adminSubtitle"></div><div class="form-group"><label>Logo</label><input type="file" id="logoUpload" accept="image/*"><button id="saveLogoBtn" style="margin-top:8px;">Salvar Logo</button></div><button id="saveSiteSettingsBtn">Salvar Site</button></div>
+        <div class="admin-panel"><h3><i class="fas fa-edit"></i> Editar Conteúdo "Sobre"</h3><div class="form-group"><label>Texto da página Sobre (HTML permitido)</label><textarea id="aboutEditor" rows="6" placeholder="Escreva sua biografia..."></textarea></div><button id="saveAboutBtn">Salvar Sobre</button></div>
+        <div class="admin-panel"><h3><i class="fas fa-share-alt"></i> Redes Sociais & Contatos</h3><div class="form-group"><label>WhatsApp (número com código país)</label><input type="tel" id="adminWhatsapp" placeholder="+351 912 345 678"></div><div class="form-group"><label>Telefone para ligação</label><input type="tel" id="adminPhone" placeholder="+351 912 345 678"></div><div class="form-group"><label>Instagram (@usuario)</label><input type="text" id="adminInstagram" placeholder="@reinanphoto"></div><div class="form-group"><label>Endereço (morada)</label><input type="text" id="adminAddress" placeholder="Rua da Fotografia, 123 - Lisboa"></div><button id="saveContactsBtn">Salvar Contatos</button></div>
+        <div class="admin-panel"><h3><i class="fas fa-upload"></i> Adicionar nova mídia (Foto ou Vídeo)</h3><div class="form-group"><label>Arquivo (imagem ou vídeo)</label><input type="file" id="mediaFile" accept="image/*,video/*"></div><div class="form-group"><label>Legenda</label><input type="text" id="mediaCaption" placeholder="Descrição da mídia"></div><button id="uploadMediaBtn">Upload</button><div id="uploadStatus" style="margin-top:10px; font-size:0.8rem;"></div></div>
+        <div class="admin-panel"><h3>Gerenciar Mídias (Editar / Excluir)</h3><div id="adminPhotoList"></div></div>
     </div>
 </div>
-<div class="floating-menu" id="floatingMenu">
-    <a href="#" target="_blank" class="floating-btn social-item" id="whatsappBtn"><i class="fab fa-whatsapp"></i></a>
-    <a href="#" class="floating-btn social-item" id="callBtn"><i class="fas fa-phone-alt"></i></a>
-    <a href="#" target="_blank" class="floating-btn social-item" id="instagramBtn"><i class="fab fa-instagram"></i></a>
-    <a href="#" class="floating-btn social-item" id="addressBtn"><i class="fas fa-map-marker-alt"></i></a>
-    <div class="floating-btn main-btn" id="menuToggle"><i class="fas fa-share-alt"></i></div>
-</div>
+<div class="floating-menu" id="floatingMenu"><a href="#" target="_blank" class="floating-btn social-item" id="whatsappBtn"><i class="fab fa-whatsapp"></i></a><a href="#" class="floating-btn social-item" id="callBtn"><i class="fas fa-phone-alt"></i></a><a href="#" target="_blank" class="floating-btn social-item" id="instagramBtn"><i class="fab fa-instagram"></i></a><a href="#" class="floating-btn social-item" id="addressBtn"><i class="fas fa-map-marker-alt"></i></a><div class="floating-btn main-btn" id="menuToggle"><i class="fas fa-share-alt"></i></div></div>
 <div class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></div>
-<div id="lightboxModal" class="modal" style="display: none;"><div class="modal-content"><div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 12px;"><div class="zoom-controls"><button id="zoomInBtn"><i class="fas fa-search-plus"></i></button><button id="zoomOutBtn"><i class="fas fa-search-minus"></i></button><button id="zoomResetBtn"><i class="fas fa-undo-alt"></i></button></div><div class="close-modal" id="closeModalBtn"><i class="fas fa-times"></i></div></div><div class="modal-img-container"><img id="modalImage" src="" alt="zoom"></div></div></div>
-<div id="editModal" class="modal" style="display: none;"><div class="login-card" style="max-width:450px;"><h3><i class="fas fa-edit"></i> Editar Mídia</h3><input type="hidden" id="editMediaId"><div class="form-group"><label>Nova legenda</label><input type="text" id="editCaption"></div><div class="form-group"><label>Substituir arquivo (opcional)</label><input type="file" id="editFile" accept="image/*,video/*"></div><div style="display: flex; gap: 10px;"><button id="confirmEditBtn">Salvar</button><button id="cancelEditBtn" class="secondary">Cancelar</button></div></div></div>
-
+<div id="lightboxModal" class="modal" style="display: none;"><div class="modal-content"><div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 12px;"><div class="zoom-controls"><button id="zoomInBtn"><i class="fas fa-search-plus"></i></button><button id="zoomOutBtn"><i class="fas fa-search-minus"></i></button><button id="zoomResetBtn"><i class="fas fa-undo-alt"></i></button></div><div class="close-modal" id="closeModalBtn"><i class="fas fa-times"></i></div></div><div class="modal-img-container"><img id="modalImage" src="" alt="zoom" style="display:none;"><video id="modalVideo" controls style="display:none;"></video></div></div></div>
+<div id="editModal" class="modal" style="display: none;"><div class="login-card" style="max-width: 450px;"><h3><i class="fas fa-edit"></i> Editar Mídia</h3><input type="hidden" id="editMediaId"><div class="form-group"><label>Nova legenda</label><input type="text" id="editCaption" placeholder="Legenda"></div><div class="form-group"><label>Novo arquivo (opcional)</label><input type="file" id="editMediaFile" accept="image/*,video/*"></div><div style="display: flex; gap: 10px; justify-content: center;"><button id="confirmEditBtn">Salvar Alterações</button><button id="cancelEditBtn" class="secondary">Cancelar</button></div></div></div>
 <script type="module">
-    // ==================== CONFIGURAÇÕES REAIS ====================
+    // Firebase config real
     const firebaseConfig = {
         apiKey: "AIzaSyCoBOoBMwg4BdcsyZ54YUJerSh_AxcQdjU",
         authDomain: "reinanphotopt.firebaseapp.com",
@@ -229,215 +217,41 @@
     const ADMIN_USERNAME = "admin";
     const ADMIN_PASSWORD = "reinan123";
     
-    // Estado
-    let allMedia = []; // { id, url, type, caption, width, height }
-    let isAdminLoggedIn = false;
-    let db, firestoreReady = false;
-    let contacts = { whatsapp: "", phone: "", instagram: "", address: "" };
+    let allMedia = [], isAdminLoggedIn = false, db, firestoreReady = false;
+    let contacts = { whatsapp: "+351912345678", phone: "+351912345678", instagram: "@reinanphoto", address: "Rua da Fotografia, 123 - Lisboa" };
     let aboutHtml = "";
     
-    // Elementos DOM
-    const photoGrid = document.getElementById('photoGrid');
-    const adminListDiv = document.getElementById('adminPhotoList');
-    const siteTitleEl = document.getElementById('siteTitle');
-    const siteSubtitleEl = document.getElementById('siteSubtitle');
-    const siteLogoImg = document.getElementById('siteLogo');
-    const adminSiteTitle = document.getElementById('adminSiteTitle');
-    const adminSubtitle = document.getElementById('adminSubtitle');
-    const adminWhatsapp = document.getElementById('adminWhatsapp');
-    const adminPhone = document.getElementById('adminPhone');
-    const adminInstagram = document.getElementById('adminInstagram');
-    const adminAddress = document.getElementById('adminAddress');
-    const aboutEditor = document.getElementById('aboutEditor');
-    const aboutContentDiv = document.getElementById('aboutContent');
-    const mediaFile = document.getElementById('mediaFile');
-    const mediaCaption = document.getElementById('mediaCaption');
-    const uploadStatus = document.getElementById('uploadStatus');
+    // DOM elements
+    const photoGrid = document.getElementById('photoGrid'), adminPhotoListDiv = document.getElementById('adminPhotoList');
+    const siteTitleEl = document.getElementById('siteTitle'), siteSubtitleEl = document.getElementById('siteSubtitle'), siteLogoImg = document.getElementById('siteLogo');
+    const adminSiteTitle = document.getElementById('adminSiteTitle'), adminSubtitle = document.getElementById('adminSubtitle');
+    const adminWhatsapp = document.getElementById('adminWhatsapp'), adminPhone = document.getElementById('adminPhone'), adminInstagram = document.getElementById('adminInstagram'), adminAddress = document.getElementById('adminAddress');
+    const saveSettingsBtn = document.getElementById('saveSiteSettingsBtn'), saveContactsBtn = document.getElementById('saveContactsBtn');
+    const logoUpload = document.getElementById('logoUpload'), saveLogoBtn = document.getElementById('saveLogoBtn');
+    const mediaFile = document.getElementById('mediaFile'), mediaCaption = document.getElementById('mediaCaption'), uploadMediaBtn = document.getElementById('uploadMediaBtn'), uploadStatus = document.getElementById('uploadStatus');
+    const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+    const aboutEditor = document.getElementById('aboutEditor'), saveAboutBtn = document.getElementById('saveAboutBtn'), aboutContentDiv = document.getElementById('aboutContent');
     
-    // Helper: obter dimensões de imagem/vídeo antes do upload
-    function getMediaDimensions(file) {
-        return new Promise((resolve, reject) => {
-            if (file.type.startsWith('image/')) {
-                const img = new Image();
-                img.onload = () => resolve({ width: img.width, height: img.height, type: 'image' });
-                img.onerror = reject;
-                img.src = URL.createObjectURL(file);
-            } else if (file.type.startsWith('video/')) {
-                const video = document.createElement('video');
-                video.preload = 'metadata';
-                video.onloadedmetadata = () => {
-                    URL.revokeObjectURL(video.src);
-                    resolve({ width: video.videoWidth, height: video.videoHeight, type: 'video' });
-                };
-                video.onerror = reject;
-                video.src = URL.createObjectURL(file);
-            } else reject(new Error('Formato não suportado'));
-        });
-    }
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
     
-    // Upload para Cloudinary (imagem ou vídeo)
     async function uploadToCloudinary(file) {
+        const isVideo = file.type.startsWith('video/');
         const fd = new FormData();
-        fd.append('file', file);
-        fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        // Para vídeos, adicionar transformação de qualidade otimizada
-        let uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
-        const resp = await fetch(uploadUrl, { method: 'POST', body: fd });
-        if (!resp.ok) throw new Error('Falha no upload');
+        fd.append("file", file);
+        fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+        if (isVideo) {
+            fd.append("resource_type", "video");
+            fd.append("transformation", "q_auto:good,f_auto,vc_h264"); // otimiza vídeo
+        } else {
+            fd.append("transformation", "q_auto,f_auto");
+        }
+        let url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${isVideo ? 'video' : 'image'}/upload`;
+        const resp = await fetch(url, { method: "POST", body: fd });
+        if (!resp.ok) throw new Error("Upload falhou");
         const data = await resp.json();
         return data.secure_url;
     }
     
-    // Salvar mídia no Firestore
-    async function saveMediaToFirestore(url, type, caption, width, height) {
-        if (!firestoreReady) throw new Error('Firestore não disponível');
-        const { addDoc, collection } = window.dbHelpers;
-        await addDoc(collection(db, 'media'), {
-            url, type, caption: caption || 'Sem legenda',
-            width, height, createdAt: new Date().toISOString()
-        });
-    }
-    
-    // Upload principal
-    async function uploadMedia() {
-        const file = mediaFile.files[0];
-        const caption = mediaCaption.value.trim();
-        if (!file) { uploadStatus.innerText = 'Selecione um arquivo'; return; }
-        uploadStatus.innerText = 'Otimizando e enviando...';
-        try {
-            const dims = await getMediaDimensions(file);
-            const cloudUrl = await uploadToCloudinary(file);
-            await saveMediaToFirestore(cloudUrl, dims.type, caption, dims.width, dims.height);
-            uploadStatus.innerText = 'Publicado com sucesso!';
-            mediaFile.value = '';
-            mediaCaption.value = '';
-            setTimeout(() => uploadStatus.innerText = '', 3000);
-        } catch (err) { uploadStatus.innerText = 'Erro: ' + err.message; }
-    }
-    
-    // Carregar mídias do Firestore em tempo real
-    function subscribeMedia() {
-        if (!firestoreReady) return;
-        const { onSnapshot, collection, query, orderBy } = window.dbHelpers;
-        onSnapshot(query(collection(db, 'media'), orderBy('createdAt', 'desc')), (snap) => {
-            allMedia = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderGallery();
-            if (isAdminLoggedIn) renderAdminList();
-        });
-    }
-    
-    // Renderizar cards (imagem ou vídeo com proporção dinâmica)
-    function renderGallery() {
-        if (!photoGrid) return;
-        if (!allMedia.length) { photoGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center;">Nenhuma mídia cadastrada.</div>'; return; }
-        photoGrid.innerHTML = allMedia.map(m => {
-            const aspect = m.width && m.height ? (m.height / m.width) * 100 : 100;
-            const isVideo = m.type === 'video';
-            return `
-                <div class="photo-card" data-id="${m.id}">
-                    <div class="media-wrapper" style="aspect-ratio: ${m.width}/${m.height};">
-                        ${isVideo ? 
-                            `<video src="${m.url}" controls preload="metadata" style="width:100%; height:100%; object-fit:cover;" poster="${m.url}?frame=1"></video>` :
-                            `<img class="photo-img" data-id="${m.id}" src="${m.url}" alt="${escapeHtml(m.caption)}" style="width:100%; height:100%; object-fit:cover;">`
-                        }
-                        <button class="btn-life" data-id="${m.id}"><i class="fas fa-feather-alt"></i> Dar vida</button>
-                        <button class="btn-share" data-id="${m.id}" data-url="${m.url}" data-caption="${escapeHtml(m.caption)}"><i class="fas fa-share-alt"></i> Compartilhar</button>
-                    </div>
-                    <div class="photo-caption">${escapeHtml(m.caption)}</div>
-                </div>
-            `;
-        }).join('');
-        // Eventos de dar vida (apenas para imagens)
-        document.querySelectorAll('.photo-img').forEach(img => {
-            img.addEventListener('click', (e) => { e.stopPropagation(); openLightbox(img.src); });
-        });
-        document.querySelectorAll('.btn-life').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = btn.getAttribute('data-id');
-                const img = document.querySelector(`.photo-img[data-id="${id}"]`);
-                if (img) {
-                    img.classList.toggle('forced-color');
-                    btn.innerHTML = img.classList.contains('forced-color') ? '<i class="fas fa-heart"></i> Vivida' : '<i class="fas fa-feather-alt"></i> Dar vida';
-                }
-            });
-        });
-        document.querySelectorAll('.btn-share').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const url = btn.getAttribute('data-url');
-                const cap = btn.getAttribute('data-caption');
-                shareMedia(url, cap);
-            });
-        });
-    }
-    
-    function shareMedia(url, caption) {
-        const whats = contacts.whatsapp || "+351912345678";
-        const insta = contacts.instagram || "@reinanphoto";
-        const text = `📸 ${caption}\n\n✨ Faça seu orçamento! ✨\n📱 WhatsApp: ${whats}\n📷 Instagram: ${insta}\n\n💫 Reinan Photo - Transformando momentos em arte.`;
-        if (navigator.share) navigator.share({ title: 'Reinan Photo', text, url }).catch(()=>{});
-        else { navigator.clipboard.writeText(text + " " + url); alert("Informações copiadas!"); }
-    }
-    
-    function renderAdminList() {
-        if (!adminListDiv) return;
-        if (!allMedia.length) { adminListDiv.innerHTML = "<p>Nenhuma mídia.</p>"; return; }
-        adminListDiv.innerHTML = allMedia.map(m => `
-            <div class="admin-photo-item">
-                ${m.type === 'video' ? `<video src="${m.url}" style="width:60px; height:60px; object-fit:cover;"></video>` : `<img src="${m.url}">`}
-                <div><strong>${escapeHtml(m.caption)}</strong><br><small>${m.type}</small></div>
-                <div><button class="edit-photo-btn" data-id="${m.id}"><i class="fas fa-edit"></i> Editar</button>
-                <button class="delete-photo-btn" data-id="${m.id}"><i class="fas fa-trash"></i> Excluir</button></div>
-            </div>
-        `).join('');
-        document.querySelectorAll('.delete-photo-btn').forEach(btn => btn.addEventListener('click', async (e) => {
-            const id = btn.getAttribute('data-id');
-            if (!confirm("Remover?")) return;
-            if (firestoreReady) { const { deleteDoc, doc } = window.dbHelpers; await deleteDoc(doc(db, 'media', id)); }
-        }));
-        document.querySelectorAll('.edit-photo-btn').forEach(btn => btn.addEventListener('click', (e) => {
-            const id = btn.getAttribute('data-id');
-            const media = allMedia.find(m => m.id == id);
-            if (media) {
-                document.getElementById('editMediaId').value = id;
-                document.getElementById('editCaption').value = media.caption || '';
-                document.getElementById('editFile').value = '';
-                document.getElementById('editModal').style.display = 'flex';
-            }
-        }));
-    }
-    
-    async function editMedia() {
-        const id = document.getElementById('editMediaId').value;
-        const newCaption = document.getElementById('editCaption').value;
-        const newFile = document.getElementById('editFile').files[0];
-        let newUrl = null, newType = null, dims = null;
-        if (newFile) {
-            dims = await getMediaDimensions(newFile);
-            newUrl = await uploadToCloudinary(newFile);
-            newType = dims.type;
-        }
-        if (firestoreReady) {
-            const { updateDoc, doc } = window.dbHelpers;
-            const updates = { caption: newCaption };
-            if (newUrl) { updates.url = newUrl; updates.type = newType; updates.width = dims.width; updates.height = dims.height; }
-            await updateDoc(doc(db, 'media', id), updates);
-        }
-        document.getElementById('editModal').style.display = 'none';
-        alert('Atualizado!');
-    }
-    
-    // Configurações e contatos (Firestore persistente)
-    async function loadSiteSettings() { /* similar ao anterior, mas com persistência real */ }
-    async function loadContacts() { /* ... */ }
-    async function loadAbout() { /* ... */ }
-    async function saveSiteSettings() { /* ... */ }
-    async function saveContacts() { /* ... */ }
-    async function saveAbout() { /* ... */ }
-    async function uploadLogo() { /* ... */ }
-    
-    // Funções de inicialização do Firebase e carregamento de dados
     async function initFirebase() {
         try {
             const { initializeApp } = window.firebaseAppInstance;
@@ -446,113 +260,72 @@
             db = getFirestore(app);
             window.dbHelpers = window.firebaseAppInstance;
             firestoreReady = true;
-            // Carregar settings
-            const { getDoc, doc, setDoc } = window.dbHelpers;
-            const settingsRef = doc(db, 'settings', 'siteConfig');
-            const settingsSnap = await getDoc(settingsRef);
-            if (settingsSnap.exists()) { const d = settingsSnap.data(); siteTitleEl.innerText = d.siteTitle || 'Reinan Photo'; siteSubtitleEl.innerText = d.siteSubtitle || ''; adminSiteTitle.value = d.siteTitle || ''; adminSubtitle.value = d.siteSubtitle || ''; if (d.logoUrl) siteLogoImg.src = d.logoUrl; }
-            const contactsRef = doc(db, 'settings', 'contacts');
-            const contactsSnap = await getDoc(contactsRef);
-            if (contactsSnap.exists()) { contacts = contactsSnap.data(); updateFloatingButtons(); adminWhatsapp.value = contacts.whatsapp || ''; adminPhone.value = contacts.phone || ''; adminInstagram.value = contacts.instagram || ''; adminAddress.value = contacts.address || ''; }
-            const aboutRef = doc(db, 'settings', 'about');
-            const aboutSnap = await getDoc(aboutRef);
-            if (aboutSnap.exists()) { aboutHtml = aboutSnap.data().content; } else { aboutHtml = '<i class="fas fa-camera-retro" style="font-size:2rem;"></i><h2>Reinan Photo</h2><p>Fotografia documental e artística.</p>'; }
-            aboutContentDiv.innerHTML = aboutHtml;
-            aboutEditor.value = aboutHtml;
-            subscribeMedia();
-        } catch(e) { console.error('Firebase error', e); firestoreReady = false; alert('Erro ao conectar ao Firebase. Verifique as credenciais.'); }
+            await loadSiteSettings();
+            await loadContacts();
+            await loadAboutContent();
+            subscribeToMedia();
+        } catch(e) { console.error("Firebase init error", e); alert("Erro ao conectar ao Firebase. Verifique sua conexão."); }
     }
     
-    function updateFloatingButtons() {
-        const wBtn = document.getElementById('whatsappBtn');
-        const cBtn = document.getElementById('callBtn');
-        const iBtn = document.getElementById('instagramBtn');
-        const aBtn = document.getElementById('addressBtn');
-        if (wBtn) wBtn.href = `https://wa.me/${contacts.whatsapp?.replace(/[^0-9+]/g, '') || ''}`;
-        if (cBtn) cBtn.href = `tel:${contacts.phone?.replace(/[^0-9+]/g, '') || ''}`;
-        if (iBtn) iBtn.href = `https://instagram.com/${contacts.instagram?.replace('@', '') || ''}`;
-        if (aBtn) aBtn.onclick = (e) => { e.preventDefault(); alert(`📍 ${contacts.address || 'Endereço não definido'}`); };
+    async function loadSiteSettings() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "siteConfig")); if(snap.exists()){ const d=snap.data(); siteTitleEl.innerText=d.siteTitle||"Reinan Photo"; siteSubtitleEl.innerText=d.siteSubtitle||""; if(d.logoUrl) siteLogoImg.src=d.logoUrl; adminSiteTitle.value=d.siteTitle||""; adminSubtitle.value=d.siteSubtitle||""; } } catch(e){} }
+    async function saveSiteSettings() { const title=adminSiteTitle.value.trim()||"Reinan Photo", sub=adminSubtitle.value.trim()||""; siteTitleEl.innerText=title; siteSubtitleEl.innerText=sub; if(firestoreReady){ try{ const { updateDoc, doc, setDoc }=window.dbHelpers; const ref=doc(db,"settings","siteConfig"); await updateDoc(ref,{siteTitle:title,siteSubtitle:sub}).catch(()=>setDoc(ref,{siteTitle:title,siteSubtitle:sub})); }catch(e){} } alert("Configurações salvas!"); }
+    async function uploadLogoLogic(){ const file=logoUpload.files[0]; if(!file) return; try{ const url=await uploadToCloudinary(file); siteLogoImg.src=url; if(firestoreReady){ const { updateDoc, doc }=window.dbHelpers; await updateDoc(doc(db,"settings","siteConfig"),{logoUrl:url}); } alert("Logo atualizada"); }catch(e){ alert("Erro:"+e.message); } }
+    async function loadContacts() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "contacts")); if(snap.exists()){ contacts = snap.data(); updateFloatingButtons(); adminWhatsapp.value=contacts.whatsapp||""; adminPhone.value=contacts.phone||""; adminInstagram.value=contacts.instagram||""; adminAddress.value=contacts.address||""; } } catch(e){} }
+    async function saveContacts() { contacts = { whatsapp: adminWhatsapp.value.trim(), phone: adminPhone.value.trim(), instagram: adminInstagram.value.trim(), address: adminAddress.value.trim() }; if(firestoreReady){ try{ const { setDoc, doc }=window.dbHelpers; await setDoc(doc(db,"settings","contacts"), contacts); }catch(e){} } updateFloatingButtons(); alert("Contatos salvos!"); }
+    async function loadAboutContent() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "about")); if(snap.exists()){ aboutHtml = snap.data().content; } else { aboutHtml = `<i class="fas fa-camera-retro" style="font-size: 2rem; margin-bottom: 1rem;"></i><h2 style="font-weight: 400;">Reinan Photo</h2><p>Fotografia documental e artística. Capturo a essência do instante, a luz que transforma o ordinário em extraordinário.</p><p style="margin-top: 1rem; font-size: 0.9rem;">📍 ${contacts.address}</p>`; } renderAbout(); if(aboutEditor) aboutEditor.value = aboutHtml; } catch(e){} }
+    async function saveAboutContent() { const newContent = aboutEditor.value; if(!newContent) return; aboutHtml = newContent; if(firestoreReady){ try{ const { setDoc, doc }=window.dbHelpers; await setDoc(doc(db,"settings","about"), { content: aboutHtml }); }catch(e){} } renderAbout(); alert("Conteúdo 'Sobre' atualizado!"); }
+    function renderAbout() { if(aboutContentDiv) aboutContentDiv.innerHTML = aboutHtml; }
+    async function uploadNewMedia(){ const file=mediaFile.files[0], cap=mediaCaption.value.trim(); if(!file){ uploadStatus.innerText="Selecione um arquivo"; return; } uploadStatus.innerText="Enviando e otimizando..."; try{ const url=await uploadToCloudinary(file); const type = file.type.startsWith('image/') ? 'image' : 'video'; if(firestoreReady){ const { addDoc, collection }=window.dbHelpers; await addDoc(collection(db,"media"),{url:url,caption:cap||"Sem legenda",type:type,createdAt:new Date().toISOString()}); }else{ allMedia.unshift({id:Date.now().toString(),url:url,caption:cap||"Sem legenda",type:type,isTest:true}); renderGallery(); if(isAdminLoggedIn) renderAdminList(); } uploadStatus.innerText="Publicada!"; mediaFile.value=""; mediaCaption.value=""; setTimeout(()=>uploadStatus.innerText="",3000); }catch(e){ uploadStatus.innerText="Erro:"+e.message; } }
+    async function editMedia(mediaId, newCaption, newFile) { let newUrl = null; if(newFile) newUrl = await uploadToCloudinary(newFile); if(firestoreReady && !mediaId.toString().startsWith('test_')){ const { updateDoc, doc }=window.dbHelpers; const updates = { caption: newCaption }; if(newUrl) { updates.url = newUrl; updates.type = newFile.type.startsWith('image/') ? 'image' : 'video'; } await updateDoc(doc(db,"media",mediaId), updates); }else{ const index = allMedia.findIndex(p=>p.id==mediaId); if(index!==-1){ allMedia[index].caption = newCaption; if(newUrl){ allMedia[index].url = newUrl; allMedia[index].type = newFile.type.startsWith('image/') ? 'image' : 'video'; } renderGallery(); if(isAdminLoggedIn) renderAdminList(); } } }
+    function subscribeToMedia(){ if(!firestoreReady) return; const { onSnapshot, collection, query, orderBy }=window.dbHelpers; onSnapshot(query(collection(db,"media"),orderBy("createdAt","desc")),(snap)=>{ allMedia = snap.docs.map(d=>({id:d.id,url:d.data().url,caption:d.data().caption,type:d.data().type})); renderGallery(); if(isAdminLoggedIn) renderAdminList(); }); }
+    
+    function shareMedia(url, caption, type) {
+        const whats = contacts.whatsapp || "+351912345678";
+        const insta = contacts.instagram || "@reinanphoto";
+        const text = `📸 *${caption}*\n\n✨ Faça seu orçamento! ✨\n📱 WhatsApp: ${whats}\n📷 Instagram: ${insta}\n\n💫 Reinan Photo - Transformando momentos em arte.`;
+        if(navigator.share) { navigator.share({ title: 'Reinan Photo', text: text, url: url }).catch(()=>{}); }
+        else { navigator.clipboard.writeText(text + " " + url); alert("Informações copiadas!"); }
     }
     
-    // Login admin
-    function showLoginModal() { /* mesmo padrão */ }
-    function initNav() { /* mesmo padrão */ }
-    
-    // Event listeners
-    document.getElementById('saveSiteSettingsBtn')?.addEventListener('click', async () => {
-        if (!firestoreReady) return;
-        const { setDoc, doc } = window.dbHelpers;
-        await setDoc(doc(db, 'settings', 'siteConfig'), { siteTitle: adminSiteTitle.value, siteSubtitle: adminSubtitle.value, logoUrl: siteLogoImg.src });
-        siteTitleEl.innerText = adminSiteTitle.value; siteSubtitleEl.innerText = adminSubtitle.value;
-        alert('Configurações salvas!');
-    });
-    document.getElementById('saveContactsBtn')?.addEventListener('click', async () => {
-        contacts = { whatsapp: adminWhatsapp.value, phone: adminPhone.value, instagram: adminInstagram.value, address: adminAddress.value };
-        if (firestoreReady) { const { setDoc, doc } = window.dbHelpers; await setDoc(doc(db, 'settings', 'contacts'), contacts); }
-        updateFloatingButtons();
-        alert('Contatos salvos!');
-    });
-    document.getElementById('saveAboutBtn')?.addEventListener('click', async () => {
-        const newAbout = aboutEditor.value;
-        if (firestoreReady) { const { setDoc, doc } = window.dbHelpers; await setDoc(doc(db, 'settings', 'about'), { content: newAbout }); }
-        aboutContentDiv.innerHTML = newAbout;
-        alert('Sobre atualizado!');
-    });
-    document.getElementById('saveLogoBtn')?.addEventListener('click', async () => {
-        const file = document.getElementById('logoUpload').files[0];
-        if (!file) return;
-        const url = await uploadToCloudinary(file);
-        siteLogoImg.src = url;
-        if (firestoreReady) { const { updateDoc, doc } = window.dbHelpers; await updateDoc(doc(db, 'settings', 'siteConfig'), { logoUrl: url }); }
-        alert('Logo atualizada!');
-    });
-    document.getElementById('uploadMediaBtn')?.addEventListener('click', uploadMedia);
-    document.getElementById('confirmEditBtn')?.addEventListener('click', editMedia);
-    document.getElementById('cancelEditBtn')?.addEventListener('click', () => document.getElementById('editModal').style.display = 'none');
-    
-    // Lightbox
-    function openLightbox(src) { /* igual */ }
-    const menuToggle = document.getElementById('menuToggle');
-    const floatingMenu = document.getElementById('floatingMenu');
-    menuToggle?.addEventListener('click', () => floatingMenu.classList.toggle('open'));
-    const backBtn = document.getElementById('backToTop');
-    window.addEventListener('scroll', () => backBtn.classList.toggle('show', window.scrollY > 300));
-    backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    
-    function preventPinch() { document.body.addEventListener('touchmove', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false }); }
-    preventPinch();
-    
-    initFirebase();
-    initNav();
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
-    
-    function escapeHtml(str) { return str?.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])) || ''; }
-    function initNav() {
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const view = btn.getAttribute('data-view');
-                if (view === 'admin' && !isAdminLoggedIn) { showLoginModal(); return; }
-                document.querySelectorAll('.view').forEach(v => v.classList.remove('active-view'));
-                document.getElementById(`${view}View`).classList.add('active-view');
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                if (view === 'admin' && isAdminLoggedIn) renderAdminList();
-            });
-        });
-        document.getElementById('adminLogoutBtn')?.addEventListener('click', () => { isAdminLoggedIn = false; alert('Logout'); document.querySelector('[data-view="gallery"]').click(); });
+    function openLightbox(url, type) {
+        const modal = document.getElementById('lightboxModal');
+        const imgEl = document.getElementById('modalImage');
+        const videoEl = document.getElementById('modalVideo');
+        imgEl.style.display = 'none'; videoEl.style.display = 'none'; videoEl.pause();
+        if(type === 'image') { imgEl.src = url; imgEl.style.display = 'block'; videoEl.style.display = 'none'; }
+        else { videoEl.src = url; videoEl.style.display = 'block'; videoEl.controls = true; videoEl.play().catch(()=>{}); }
+        modal.style.display = 'flex';
+        let zoom = 1;
+        const updateZoom = () => { if(type==='image') imgEl.style.transform = `scale(${zoom})`; };
+        const zi = document.getElementById('zoomInBtn'), zo = document.getElementById('zoomOutBtn'), zr = document.getElementById('zoomResetBtn');
+        zi.onclick = () => { if(type==='image'){ zoom = Math.min(zoom+0.25,3.5); updateZoom(); } };
+        zo.onclick = () => { if(type==='image'){ zoom = Math.max(zoom-0.25,0.6); updateZoom(); } };
+        zr.onclick = () => { if(type==='image'){ zoom=1; updateZoom(); } };
+        document.getElementById('closeModalBtn').onclick = () => modal.style.display = 'none';
+        modal.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
     }
-    function showLoginModal() {
-        const ov = document.createElement('div'); ov.className = 'login-overlay';
-        ov.innerHTML = `<div class="login-card"><h2>Admin</h2><input id="loginUser" placeholder="Usuário"><input id="loginPass" type="password" placeholder="Senha"><button id="loginBtn">Entrar</button><div id="loginErr" style="color:red"></div></div>`;
-        document.body.appendChild(ov);
-        const login = () => {
-            if (ov.querySelector('#loginUser').value === ADMIN_USERNAME && ov.querySelector('#loginPass').value === ADMIN_PASSWORD) {
-                isAdminLoggedIn = true; ov.remove(); document.querySelector('[data-view="admin"]').click();
-            } else ov.querySelector('#loginErr').innerText = 'Credenciais inválidas';
-        };
-        ov.querySelector('#loginBtn').onclick = login;
-        ov.querySelector('#loginPass').addEventListener('keypress', e => { if (e.key === 'Enter') login(); });
+    
+    function renderGallery(){ if(!photoGrid) return; if(!allMedia.length){ photoGrid.innerHTML=`<div style="grid-column:span 2;text-align:center;padding:2rem;">Nenhuma mídia. Faça upload no admin.</div>`; return; } photoGrid.innerHTML=allMedia.map(m=>`<div class="photo-card" data-id="${m.id}"><div class="media-wrapper">${m.type === 'image' ? `<img class="photo-img" data-id="${m.id}" src="${m.url}" alt="${escapeHtml(m.caption)}">` : `<video class="video-media" data-id="${m.id}" src="${m.url}" muted loop playsinline></video>`}<button class="btn-life" data-id="${m.id}" data-type="${m.type}"><i class="fas fa-feather-alt"></i> Dar vida</button><button class="btn-share" data-id="${m.id}" data-url="${m.url}" data-caption="${escapeHtml(m.caption)}" data-type="${m.type}"><i class="fas fa-share-alt"></i> Compartilhar</button></div><div class="media-caption">${escapeHtml(m.caption)||"Sem legenda"}</div></div>`).join('');
+        document.querySelectorAll('.photo-img, .video-media').forEach(el=>{ el.addEventListener('click',(e)=>{ e.stopPropagation(); const parent = el.closest('.photo-card'); const id = parent.getAttribute('data-id'); const media = allMedia.find(m=>m.id==id); if(media) openLightbox(media.url, media.type); }); });
+        document.querySelectorAll('.btn-life').forEach(btn=>btn.addEventListener('click',(e)=>{ e.stopPropagation(); const id=btn.getAttribute('data-id'); const type=btn.getAttribute('data-type'); const target = type==='image' ? document.querySelector(`.photo-img[data-id="${id}"]`) : document.querySelector(`.video-media[data-id="${id}"]`); if(target){ target.classList.toggle('forced-color'); btn.innerHTML=target.classList.contains('forced-color')?'<i class="fas fa-heart"></i> Vivida':'<i class="fas fa-feather-alt"></i> Dar vida'; } }));
+        document.querySelectorAll('.btn-share').forEach(btn=>btn.addEventListener('click',(e)=>{ e.stopPropagation(); const url=btn.getAttribute('data-url'); const cap=btn.getAttribute('data-caption'); const type=btn.getAttribute('data-type'); shareMedia(url, cap, type); }));
+        document.querySelectorAll('.video-media').forEach(video=>{ video.addEventListener('mouseenter',()=>video.play().catch(()=>{})); video.addEventListener('mouseleave',()=>{video.pause(); video.currentTime=0;}); video.addEventListener('touchstart',()=>video.play().catch(()=>{})); });
     }
+    
+    function renderAdminList(){ if(!adminPhotoListDiv) return; if(!allMedia.length){ adminPhotoListDiv.innerHTML="<p>Nenhuma mídia</p>"; return; } adminPhotoListDiv.innerHTML=allMedia.map(m=>`<div class="admin-photo-item">${m.type==='image'?`<img src="${m.url}">`:`<video src="${m.url}" muted></video>`}<div><strong>${escapeHtml(m.caption||"sem legenda")}</strong><br><small>${m.type}</small></div><div><button class="edit-photo-btn" data-id="${m.id}"><i class="fas fa-edit"></i> Editar</button><button class="delete-photo-btn" data-id="${m.id}"><i class="fas fa-trash"></i> Excluir</button></div></div>`).join(''); document.querySelectorAll('.delete-photo-btn').forEach(btn=>btn.addEventListener('click',async(e)=>{ const id=btn.getAttribute('data-id'); if(!confirm("Remover?")) return; if(firestoreReady && !id.toString().startsWith('test_')){ const { deleteDoc, doc }=window.dbHelpers; await deleteDoc(doc(db,"media",id)); }else{ allMedia=allMedia.filter(p=>p.id!=id); renderGallery(); renderAdminList(); } })); document.querySelectorAll('.edit-photo-btn').forEach(btn=>btn.addEventListener('click',(e)=>{ const id=btn.getAttribute('data-id'); const media=allMedia.find(p=>p.id==id); if(media){ document.getElementById('editMediaId').value=id; document.getElementById('editCaption').value=media.caption||''; document.getElementById('editMediaFile').value=''; document.getElementById('editModal').style.display='flex'; } })); }
+    
+    function updateFloatingButtons(){ const wBtn=document.getElementById('whatsappBtn'), cBtn=document.getElementById('callBtn'), iBtn=document.getElementById('instagramBtn'), aBtn=document.getElementById('addressBtn'); if(wBtn) wBtn.href=`https://wa.me/${contacts.whatsapp.replace(/[^0-9+]/g,'')}`; if(cBtn) cBtn.href=`tel:${contacts.phone.replace(/[^0-9+]/g,'')}`; if(iBtn) iBtn.href=`https://instagram.com/${contacts.instagram.replace('@','')}`; if(aBtn) aBtn.onclick=(e)=>{ e.preventDefault(); alert(`📍 ${contacts.address}`); }; }
+    
+    function showLoginModal(){ const ov=document.createElement('div'); ov.className='login-overlay'; ov.innerHTML=`<div class="login-card"><h2><i class="fas fa-lock"></i> Admin</h2><input id="loginUser" placeholder="Usuário"><input id="loginPass" type="password" placeholder="Senha"><button id="loginBtn">Entrar</button><div id="loginErr" style="color:red;margin-top:8px;"></div></div>`; document.body.appendChild(ov); const login=()=>{ if(ov.querySelector('#loginUser').value===ADMIN_USERNAME && ov.querySelector('#loginPass').value===ADMIN_PASSWORD){ isAdminLoggedIn=true; ov.remove(); document.getElementById('adminView').classList.add('active-view'); document.getElementById('galleryView').classList.remove('active-view'); document.getElementById('aboutView').classList.remove('active-view'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.querySelector('[data-view="admin"]').classList.add('active'); renderAdminList(); }else{ ov.querySelector('#loginErr').innerText="Credenciais inválidas"; } }; ov.querySelector('#loginBtn').onclick=login; ov.querySelector('#loginPass').addEventListener('keypress',e=>{if(e.key==='Enter')login();}); }
+    function initNav(){ document.querySelectorAll('.nav-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ const v=btn.getAttribute('data-view'); if(v==='admin' && !isAdminLoggedIn){ showLoginModal(); return; } document.querySelectorAll('.view').forEach(vw=>vw.classList.remove('active-view')); document.getElementById(`${v}View`).classList.add('active-view'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); if(v==='admin' && isAdminLoggedIn) renderAdminList(); }); }); adminLogoutBtn.addEventListener('click',()=>{ isAdminLoggedIn=false; alert("Logout"); document.querySelector('[data-view="gallery"]').click(); }); }
+    const menuToggle=document.getElementById('menuToggle'), floatingMenu=document.getElementById('floatingMenu'); menuToggle.addEventListener('click',()=>floatingMenu.classList.toggle('open'));
+    const backBtn=document.getElementById('backToTop'); window.addEventListener('scroll',()=>{ backBtn.classList.toggle('show',window.scrollY>300); }); backBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+    saveSettingsBtn.addEventListener('click',saveSiteSettings); saveContactsBtn.addEventListener('click',saveContacts); saveLogoBtn.addEventListener('click',uploadLogoLogic); uploadMediaBtn.addEventListener('click',uploadNewMedia); saveAboutBtn.addEventListener('click',saveAboutContent);
+    document.getElementById('confirmEditBtn')?.addEventListener('click',async()=>{ const id=document.getElementById('editMediaId').value, newCaption=document.getElementById('editCaption').value, file=document.getElementById('editMediaFile').files[0]; await editMedia(id, newCaption, file); document.getElementById('editModal').style.display='none'; renderGallery(); if(isAdminLoggedIn) renderAdminList(); alert("Atualizado!"); });
+    document.getElementById('cancelEditBtn')?.addEventListener('click',()=>{ document.getElementById('editModal').style.display='none'; });
+    function preventPinchZoom() { document.body.addEventListener('touchmove', function(e) { if(e.touches.length > 1) e.preventDefault(); }, { passive: false }); } preventPinchZoom();
+    initFirebase(); initNav();
+    if('serviceWorker' in navigator){ const swCode = `self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));`; const blob = new Blob([swCode], {type: 'application/javascript'}); navigator.serviceWorker.register(URL.createObjectURL(blob)); }
 </script>
 </body>
 </html>
