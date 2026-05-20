@@ -53,51 +53,95 @@
             touch-action: pan-y;
         }
         
-        /* HEADER - estilo minimalista */
+        /* HEADER */
         .header-main {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.5rem 2rem;
+            padding: 1rem 2rem;
             border-bottom: 1px solid #eaeaea;
             max-width: 1400px;
             margin: 0 auto;
+            position: relative;
+            z-index: 10;
         }
         
-        .logo-header .logo-home {
-            font-size: 1.8rem;
-            font-weight: 400;
-            letter-spacing: -1px;
-            text-decoration: none;
-            color: #000;
-            font-family: 'GFS Didot', serif;
+        .logo-header .logo-img {
+            height: 45px;
+            width: auto;
+            max-width: 120px;
+            object-fit: contain;
+            background: transparent;
+            border-radius: 8px;
         }
         
-        .about-main {
+        /* Botão menu sanduíche */
+        .menu-toggle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            z-index: 100;
+            position: relative;
+        }
+        
+        .menu-toggle-btn span {
+            display: block;
+            width: 25px;
+            height: 2px;
+            background: #000;
+            margin: 5px 0;
+            transition: 0.3s;
+        }
+        
+        /* Menu lateral preto */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            z-index: 1000;
+            transition: left 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
             display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             gap: 2rem;
         }
         
-        .about-main a {
+        .side-menu.open {
+            left: 0;
+        }
+        
+        .side-menu a {
+            color: white;
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 1.5rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
             letter-spacing: 1px;
             text-transform: uppercase;
-            color: #2c2c2c;
-            transition: all 0.3s ease;
+            transition: opacity 0.3s;
         }
         
-        .about-main a:hover {
-            color: #ff6b6b;
-            transform: translateY(-2px);
+        .side-menu a:hover {
+            opacity: 0.7;
         }
         
-        /* Menu hamburguer (mobile) */
-        .navigation__menu {
-            display: none;
+        .close-menu-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
         }
         
-        /* MAIN LAYOUT - estilo editorial */
+        /* MAIN LAYOUT */
         main {
             min-height: calc(100vh - 200px);
         }
@@ -116,7 +160,7 @@
             margin-bottom: 1rem;
         }
         
-        /* Grid de imagens estilo mosaico - desktop (5 colunas) */
+        /* Grid de imagens estilo mosaico */
         .box-images {
             max-width: 1400px;
             margin: 0 auto;
@@ -136,6 +180,7 @@
             overflow: hidden;
             cursor: pointer;
             transition: all 0.4s ease;
+            position: relative;
         }
         
         .cena-03 .box-img img,
@@ -144,20 +189,19 @@
             height: auto;
             display: block;
             object-fit: cover;
-            transition: transform 0.5s ease, opacity 0.3s ease;
-            filter: grayscale(100%);
+            transition: transform 0.5s ease;
         }
         
         .cena-03 .box-img:hover img,
         .cena-03 .box-img:hover video {
             transform: scale(1.02);
-            filter: grayscale(0%);
         }
         
-        /* Primeira imagem em destaque (full width) */
         .cena-01 {
             margin-bottom: 2rem;
             overflow: hidden;
+            cursor: pointer;
+            position: relative;
         }
         
         .cena-01 img,
@@ -167,16 +211,29 @@
             display: block;
             object-fit: cover;
             transition: transform 0.5s ease;
-            filter: grayscale(100%);
         }
         
         .cena-01:hover img,
         .cena-01:hover video {
             transform: scale(1.01);
-            filter: grayscale(0%);
         }
         
-        /* Versão mobile (2 colunas) */
+        /* Legenda */
+        .media-caption-badge {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            pointer-events: none;
+        }
+        
+        /* Mobile */
         .box-images-mobile {
             display: none;
         }
@@ -198,12 +255,11 @@
             gap: 2rem;
         }
         
-        .logo-footer {
-            font-family: 'GFS Didot', serif;
-            font-size: 1.8rem;
-            font-weight: 400;
-            letter-spacing: -1px;
-            color: #000;
+        .logo-footer-img {
+            height: 40px;
+            width: auto;
+            max-width: 100px;
+            object-fit: contain;
         }
         
         .contact {
@@ -241,17 +297,6 @@
         @media (max-width: 768px) {
             .header-main {
                 padding: 1rem;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 1rem;
-            }
-            
-            .about-main {
-                gap: 1rem;
-            }
-            
-            .about-main a {
-                font-size: 0.7rem;
             }
             
             .title-editorial {
@@ -284,6 +329,8 @@
             
             .cena-item {
                 overflow: hidden;
+                cursor: pointer;
+                position: relative;
             }
             
             .cena-item img,
@@ -291,13 +338,11 @@
                 width: 100%;
                 height: auto;
                 display: block;
-                filter: grayscale(100%);
-                transition: all 0.3s ease;
+                transition: transform 0.3s ease;
             }
             
             .cena-item:hover img,
             .cena-item:hover video {
-                filter: grayscale(0%);
                 transform: scale(1.02);
             }
             
@@ -321,7 +366,7 @@
             }
         }
         
-        /* Admin panels (mantido do sistema original) */
+        /* Admin panels */
         .admin-panel {
             background: #fff;
             border: 1px solid #e0e0e0;
@@ -338,17 +383,10 @@
         button.secondary { background: #eaeaea; color: #111; }
         button.secondary:hover { background: #ff6b6b; color: white; }
         
-        /* Menu flutuante */
-        .floating-menu { position: fixed; bottom: 25px; right: 20px; z-index: 999; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
-        .floating-btn { width: 55px; height: 55px; border-radius: 30px; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 20px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; color: white; font-size: 1.4rem; text-decoration: none; }
-        .floating-btn.social-item.whatsapp { background: #25D366; background: radial-gradient(circle at 30% 30%, #25D366, #128C7E); }
-        .floating-btn.social-item.phone { background: #34B7F1; background: radial-gradient(circle at 30% 30%, #34B7F1, #1C6EA4); }
-        .floating-btn.social-item.instagram { background: radial-gradient(circle at 30% 30%, #F58529, #DD2A7B, #8134AF); }
-        .floating-btn.social-item.address { background: #FF6B6B; background: radial-gradient(circle at 30% 30%, #FF6B6B, #EE5A24); }
-        .floating-btn.main-btn { background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); color: white; border: 1px solid rgba(255,255,255,0.3); }
-        .floating-btn.social-item { transform: scale(0); opacity: 0; pointer-events: none; background: rgba(30,30,30,0.7); color: white; }
-        .floating-menu.open .social-item { transform: scale(1); opacity: 1; pointer-events: auto; }
-        .floating-btn:hover { transform: scale(1.08); filter: brightness(1.1); }
+        /* Menu flutuante removido, agora integrado ao menu sanduíche */
+        .view { display: none; animation: fadeIn 0.3s ease; }
+        .view.active-view { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
         
         .back-to-top { position: fixed; bottom: 25px; left: 20px; width: 48px; height: 48px; border-radius: 30px; background: rgba(0,0,0,0.65); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 999; transition: all 0.3s; color: white; opacity: 0; visibility: hidden; }
         .back-to-top.show { opacity: 1; visibility: visible; }
@@ -370,10 +408,7 @@
         .edit-photo-btn:hover { background: #ffa502; }
         
         .warning-banner { background: #fff3cd; color: #856404; padding: 8px 16px; border-radius: 12px; margin-bottom: 1rem; font-size: 0.8rem; text-align: center; }
-        
-        .view { display: none; animation: fadeIn 0.3s ease; }
-        .view.active-view { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+        .about-text { max-width: 800px; margin: 2rem auto; text-align: center; font-size: 1.1rem; line-height: 1.6; padding: 0 2rem; }
     </style>
 </head>
 <body>
@@ -381,21 +416,25 @@
 <!-- HEADER -->
 <div class="header-main">
     <div class="logo-header">
-        <a class="logo-home" href="#" id="logoHomeLink">RF</a>
+        <img id="siteLogo" class="logo-img" src="" alt="logo" style="height:45px;">
     </div>
-    <div class="about-main">
-        <a href="#" class="nav-btn" data-view="gallery">Portfólio</a>
-        <a href="#" class="nav-btn" data-view="about">Sobre</a>
-        <a href="#" class="nav-btn" data-view="admin">Admin</a>
-    </div>
-    <nav class="navigation__menu" id="navbar-gsap">
-        <input type="checkbox" id="menu-toggle" class="navigation__menu-input">
-        <label for="menu-toggle" class="navigation__menu-label">
-            <span class="navigation__label-bar navigation__label-bar1"></span>
-            <span class="navigation__label-bar navigation__label-bar2"></span>
-            <span class="navigation__label-bar navigation__label-bar3"></span>
-        </label>
-    </nav>
+    <button class="menu-toggle-btn" id="menuToggleBtn">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+</div>
+
+<!-- MENU LATERAL PRETO -->
+<div class="side-menu" id="sideMenu">
+    <button class="close-menu-btn" id="closeMenuBtn"><i class="fas fa-times"></i></button>
+    <a href="#" class="nav-link" data-view="gallery">Portfólio</a>
+    <a href="#" class="nav-link" data-view="about">Sobre</a>
+    <a href="#" class="nav-link" data-view="admin">Admin</a>
+    <a href="#" id="menuInstagramLink" target="_blank">Instagram</a>
+    <a href="#" id="menuWhatsappLink" target="_blank">WhatsApp</a>
+    <a href="#" id="menuCallLink">Telefone</a>
+    <a href="#" id="menuAddressLink">Endereço</a>
 </div>
 
 <!-- VIEWS -->
@@ -416,9 +455,7 @@
     <div class="wrapper-editorial">
         <h1 class="title-editorial">Sobre</h1>
     </div>
-    <div id="aboutContent" class="about-text" style="max-width: 800px; margin: 2rem auto; text-align: center; font-size: 1.1rem; line-height: 1.6; padding: 0 2rem;">
-        <p>Carregando...</p>
-    </div>
+    <div id="aboutContent" class="about-text">Carregando...</div>
 </div>
 
 <div id="adminView" class="view">
@@ -432,7 +469,7 @@
         <div class="admin-panel"><h3><i class="fas fa-sliders-h"></i> Configurações do Site</h3>
             <div class="form-group"><label>Nome do site</label><input type="text" id="adminSiteTitle" placeholder="Reinan Photo"></div>
             <div class="form-group"><label>Subtítulo</label><input type="text" id="adminSubtitle" placeholder="fotografia & sentimentos"></div>
-            <div class="form-group"><label>Logo</label><input type="file" id="logoUpload" accept="image/*"><button id="saveLogoBtn" style="margin-top:8px;">Salvar Logo</button></div>
+            <div class="form-group"><label>Logo (imagem)</label><input type="file" id="logoUpload" accept="image/*"><button id="saveLogoBtn" style="margin-top:8px;">Salvar Logo</button></div>
             <button id="saveSiteSettingsBtn">Salvar Site</button>
         </div>
         <div class="admin-panel"><h3><i class="fas fa-edit"></i> Editar Conteúdo "Sobre"</h3>
@@ -454,15 +491,6 @@
         </div>
         <div class="admin-panel"><h3>Gerenciar Mídias (Editar / Excluir)</h3><div id="adminPhotoList"></div></div>
     </div>
-</div>
-
-<!-- FLOATING MENU -->
-<div class="floating-menu" id="floatingMenu">
-    <a href="#" target="_blank" class="floating-btn social-item whatsapp" id="whatsappBtn"><i class="fab fa-whatsapp"></i></a>
-    <a href="#" class="floating-btn social-item phone" id="callBtn"><i class="fas fa-phone-alt"></i></a>
-    <a href="#" target="_blank" class="floating-btn social-item instagram" id="instagramBtn"><i class="fab fa-instagram"></i></a>
-    <a href="#" class="floating-btn social-item address" id="addressBtn"><i class="fas fa-map-marker-alt"></i></a>
-    <div class="floating-btn main-btn" id="menuToggle"><i class="fas fa-share-alt"></i></div>
 </div>
 
 <!-- BACK TO TOP -->
@@ -494,7 +522,7 @@
 <footer class="footer">
     <div class="box-footer">
         <div class="logo-VF">
-            <h1 class="logo-footer">RF</h1>
+            <img id="footerLogo" class="logo-footer-img" src="" alt="logo">
         </div>
         <div class="contact">
             <a href="#" class="contact-link" id="instagramFooterLink">Instagram</a>
@@ -526,13 +554,13 @@
     let currentUser = null;
     let contacts = { whatsapp: "+351912345678", phone: "+351912345678", instagram: "@reinanphoto", address: "Rua da Fotografia, 123 - Lisboa" };
     let aboutHtml = "";
+    let currentLogoUrl = "";
     
     // DOM elements
     const photoGridDesktop = document.getElementById('photoGridDesktop');
     const photoGridMobile = document.getElementById('photoGridMobile');
     const adminPhotoListDiv = document.getElementById('adminPhotoList');
     const siteTitleEl = document.getElementById('siteTitleHeader');
-    const siteSubtitleEl = document.getElementById('siteSubtitle');
     const adminSiteTitle = document.getElementById('adminSiteTitle');
     const adminSubtitle = document.getElementById('adminSubtitle');
     const adminWhatsapp = document.getElementById('adminWhatsapp');
@@ -552,9 +580,8 @@
     const saveAboutBtn = document.getElementById('saveAboutBtn');
     const aboutContentDiv = document.getElementById('aboutContent');
     const warningDiv = document.getElementById('warningMsg');
-    const logoHomeLink = document.getElementById('logoHomeLink');
-    const instagramFooterLink = document.getElementById('instagramFooterLink');
-    const whatsappFooterLink = document.getElementById('whatsappFooterLink');
+    const siteLogoImg = document.getElementById('siteLogo');
+    const footerLogoImg = document.getElementById('footerLogo');
     
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
     
@@ -609,11 +636,11 @@
         } catch(e) { alert("Erro de autenticação."); return false; }
     }
     
-    async function loadSiteSettings() { if(!db) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "siteConfig")); if(snap.exists()){ const d=snap.data(); if(siteTitleEl) siteTitleEl.innerText=d.siteTitle||"Reinan Photo"; adminSiteTitle.value=d.siteTitle||""; adminSubtitle.value=d.siteSubtitle||""; } else { if(await ensureAuthForWrite()) { const { setDoc } = window.dbHelpers; await setDoc(doc(db, "settings", "siteConfig"), { siteTitle: "Reinan Photo", siteSubtitle: "fotografia & sentimentos" }); } } } catch(e){} }
-    async function saveSiteSettings() { const title=adminSiteTitle.value.trim()||"Reinan Photo", sub=adminSubtitle.value.trim()||""; if(siteTitleEl) siteTitleEl.innerText=title; if(db && await ensureAuthForWrite()){ try{ const { updateDoc, doc }=window.dbHelpers; await updateDoc(doc(db,"settings","siteConfig"),{siteTitle:title,siteSubtitle:sub}); alert("Configurações salvas!"); } catch(e){ alert("Erro ao salvar: "+e.message); } } else { alert("Necessário autenticação."); } }
-    async function uploadLogoLogic(){ const file=logoUpload.files[0]; if(!file) return; try{ const url=await uploadToCloudinary(file); if(db && await ensureAuthForWrite()){ const { updateDoc, doc }=window.dbHelpers; await updateDoc(doc(db,"settings","siteConfig"),{logoUrl:url}); alert("Logo atualizada"); } }catch(e){ alert("Erro:"+e.message); } }
-    async function loadContacts() { if(!db) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "contacts")); if(snap.exists()){ contacts = snap.data(); updateFloatingButtons(); adminWhatsapp.value=contacts.whatsapp||""; adminPhone.value=contacts.phone||""; adminInstagram.value=contacts.instagram||""; adminAddress.value=contacts.address||""; } else { if(await ensureAuthForWrite()) { const { setDoc } = window.dbHelpers; await setDoc(doc(db, "settings", "contacts"), contacts); } } } catch(e){} }
-    async function saveContacts() { contacts = { whatsapp: adminWhatsapp.value.trim(), phone: adminPhone.value.trim(), instagram: adminInstagram.value.trim(), address: adminAddress.value.trim() }; if(db && await ensureAuthForWrite()){ try{ const { setDoc, doc }=window.dbHelpers; await setDoc(doc(db,"settings","contacts"), contacts); updateFloatingButtons(); alert("Contatos salvos!"); } catch(e){ alert("Erro ao salvar contatos: "+e.message); } } else { alert("Necessário autenticação."); } }
+    async function loadSiteSettings() { if(!db) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "siteConfig")); if(snap.exists()){ const d=snap.data(); if(siteTitleEl) siteTitleEl.innerText=d.siteTitle||"Reinan Photo"; adminSiteTitle.value=d.siteTitle||""; adminSubtitle.value=d.siteSubtitle||""; if(d.logoUrl) { currentLogoUrl = d.logoUrl; if(siteLogoImg) siteLogoImg.src = d.logoUrl; if(footerLogoImg) footerLogoImg.src = d.logoUrl; } } else { if(await ensureAuthForWrite()) { const { setDoc } = window.dbHelpers; await setDoc(doc(db, "settings", "siteConfig"), { siteTitle: "Reinan Photo", siteSubtitle: "fotografia & sentimentos" }); } } } catch(e){} }
+    async function saveSiteSettings() { const title=adminSiteTitle.value.trim()||"Reinan Photo"; if(siteTitleEl) siteTitleEl.innerText=title; if(db && await ensureAuthForWrite()){ try{ const { updateDoc, doc }=window.dbHelpers; await updateDoc(doc(db,"settings","siteConfig"),{siteTitle:title,siteSubtitle:adminSubtitle.value.trim()||""}); alert("Configurações salvas!"); } catch(e){ alert("Erro ao salvar: "+e.message); } } else { alert("Necessário autenticação."); } }
+    async function uploadLogoLogic(){ const file=logoUpload.files[0]; if(!file) return; try{ const url=await uploadToCloudinary(file); currentLogoUrl = url; if(siteLogoImg) siteLogoImg.src = url; if(footerLogoImg) footerLogoImg.src = url; if(db && await ensureAuthForWrite()){ const { updateDoc, doc }=window.dbHelpers; await updateDoc(doc(db,"settings","siteConfig"),{logoUrl:url}); alert("Logo atualizada"); } }catch(e){ alert("Erro:"+e.message); } }
+    async function loadContacts() { if(!db) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "contacts")); if(snap.exists()){ contacts = snap.data(); updateLinks(); adminWhatsapp.value=contacts.whatsapp||""; adminPhone.value=contacts.phone||""; adminInstagram.value=contacts.instagram||""; adminAddress.value=contacts.address||""; } else { if(await ensureAuthForWrite()) { const { setDoc } = window.dbHelpers; await setDoc(doc(db, "settings", "contacts"), contacts); } } } catch(e){} }
+    async function saveContacts() { contacts = { whatsapp: adminWhatsapp.value.trim(), phone: adminPhone.value.trim(), instagram: adminInstagram.value.trim(), address: adminAddress.value.trim() }; if(db && await ensureAuthForWrite()){ try{ const { setDoc, doc }=window.dbHelpers; await setDoc(doc(db,"settings","contacts"), contacts); updateLinks(); alert("Contatos salvos!"); } catch(e){ alert("Erro ao salvar contatos: "+e.message); } } else { alert("Necessário autenticação."); } }
     async function loadAboutContent() { if(!db) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "about")); if(snap.exists()){ aboutHtml = snap.data().content; } else { aboutHtml = `<p>Fotografia documental e artística. Capturo a essência do instante, a luz que transforma o ordinário em extraordinário.</p><p style="margin-top: 1rem;">📍 ${contacts.address}</p>`; if(await ensureAuthForWrite()) { const { setDoc } = window.dbHelpers; await setDoc(doc(db, "settings", "about"), { content: aboutHtml }); } } renderAbout(); if(aboutEditor) aboutEditor.value = aboutHtml; } catch(e){} }
     async function saveAboutContent() { const newContent = aboutEditor.value; if(!newContent) return; aboutHtml = newContent; if(db && await ensureAuthForWrite()){ try{ const { setDoc, doc }=window.dbHelpers; await setDoc(doc(db,"settings","about"), { content: aboutHtml }); renderAbout(); alert("Conteúdo 'Sobre' atualizado!"); } catch(e){ alert("Erro ao salvar: "+e.message); } } else { alert("Necessário autenticação."); } }
     function renderAbout() { if(aboutContentDiv) aboutContentDiv.innerHTML = aboutHtml; }
@@ -630,15 +657,6 @@
             if (media) { setTimeout(() => openLightbox(media.url, media.type), 500); window.history.replaceState({}, '', window.location.pathname); }
         }
     }, (error) => { console.error("Firestore read error:", error); warningDiv.style.display = 'block'; warningDiv.innerText = 'Erro ao ler dados do Firebase.'; });
-    }
-    
-    function shareMedia(mediaId, caption) {
-        const whats = contacts.whatsapp || "+351912345678";
-        const insta = contacts.instagram || "@reinanphoto";
-        const shareUrl = `${window.location.origin}${window.location.pathname}?id=${mediaId}`;
-        const text = `📸 *${caption}*\n\n✨ Faça seu orçamento! ✨\n📱 WhatsApp: ${whats}\n📷 Instagram: ${insta}\n\n🔗 Veja esta obra: ${shareUrl}\n\n💫 Reinan Photo - Transformando momentos em arte.`;
-        if (navigator.share) { navigator.share({ title: 'Reinan Photo', text: text, url: shareUrl }).catch(() => {}); }
-        else { navigator.clipboard.writeText(text); alert("Link copiado!"); }
     }
     
     function openLightbox(url, type) {
@@ -666,17 +684,16 @@
             return;
         }
         
-        // Desktop: layout em mosaico com 5 colunas
-        let desktopHtml = `<div class="cena-01" id="firstMediaDesktop"></div>`;
-        let remainingMedia = [...allMedia];
-        let firstMedia = remainingMedia.shift();
+        let desktopHtml = ``;
+        let firstMedia = allMedia[0];
         if(firstMedia) {
             desktopHtml = `<div class="cena-01" data-id="${firstMedia.id}" data-url="${firstMedia.url}" data-type="${firstMedia.type}" data-caption="${escapeHtml(firstMedia.caption)}">
                 ${firstMedia.type === 'image' ? `<img src="${firstMedia.url}" alt="${escapeHtml(firstMedia.caption)}">` : `<video src="${firstMedia.url}" muted loop playsinline></video>`}
+                <div class="media-caption-badge">${escapeHtml(firstMedia.caption) || ''}</div>
             </div>`;
         }
         
-        // Agrupar em grupos de 5 para as linhas
+        const remainingMedia = allMedia.slice(1);
         const chunkSize = 5;
         for(let i = 0; i < remainingMedia.length; i += chunkSize) {
             const chunk = remainingMedia.slice(i, i + chunkSize);
@@ -684,74 +701,31 @@
             chunk.forEach(media => {
                 desktopHtml += `<div class="box-img" data-id="${media.id}" data-url="${media.url}" data-type="${media.type}" data-caption="${escapeHtml(media.caption)}">
                     ${media.type === 'image' ? `<img src="${media.url}" alt="${escapeHtml(media.caption)}">` : `<video src="${media.url}" muted loop playsinline></video>`}
-                    <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 20px; font-size: 11px; color: white;">${escapeHtml(media.caption) || ''}</div>
+                    <div class="media-caption-badge">${escapeHtml(media.caption) || ''}</div>
                 </div>`;
             });
             desktopHtml += `</div>`;
         }
         if(photoGridDesktop) photoGridDesktop.innerHTML = desktopHtml;
         
-        // Mobile: grid 2 colunas
         let mobileHtml = `<div class="grid-cenas">`;
         allMedia.forEach(media => {
             mobileHtml += `<div class="cena-item" data-id="${media.id}" data-url="${media.url}" data-type="${media.type}" data-caption="${escapeHtml(media.caption)}">
                 ${media.type === 'image' ? `<img src="${media.url}" alt="${escapeHtml(media.caption)}">` : `<video src="${media.url}" muted loop playsinline></video>`}
+                <div class="media-caption-badge">${escapeHtml(media.caption) || ''}</div>
             </div>`;
         });
         mobileHtml += `</div>`;
         if(photoGridMobile) photoGridMobile.innerHTML = mobileHtml;
         
-        // Adicionar eventos de clique
         document.querySelectorAll('.cena-01, .box-img, .cena-item').forEach(el => {
             el.style.cursor = 'pointer';
             el.addEventListener('click', (e) => {
-                if(e.target.classList && e.target.classList.contains('btn-life')) return;
                 const media = allMedia.find(m => m.id === el.getAttribute('data-id'));
                 if(media) openLightbox(media.url, media.type);
             });
         });
         
-        // Adicionar botões de vida e compartilhar
-        document.querySelectorAll('.cena-01, .box-img, .cena-item').forEach(el => {
-            const mediaId = el.getAttribute('data-id');
-            const media = allMedia.find(m => m.id === mediaId);
-            if(media) {
-                const btnLife = document.createElement('button');
-                btnLife.className = 'btn-life';
-                btnLife.innerHTML = '<i class="fas fa-feather-alt"></i> Dar vida';
-                btnLife.style.position = 'absolute';
-                btnLife.style.bottom = '10px';
-                btnLife.style.right = '10px';
-                btnLife.style.zIndex = '10';
-                el.style.position = 'relative';
-                el.appendChild(btnLife);
-                
-                const btnShare = document.createElement('button');
-                btnShare.className = 'btn-share';
-                btnShare.innerHTML = '<i class="fas fa-share-alt"></i> Compartilhar';
-                btnShare.style.position = 'absolute';
-                btnShare.style.bottom = '10px';
-                btnShare.style.left = '10px';
-                btnShare.style.zIndex = '10';
-                el.appendChild(btnShare);
-                
-                btnLife.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const imgOrVideo = el.querySelector('img, video');
-                    if(imgOrVideo) {
-                        imgOrVideo.classList.toggle('forced-color');
-                        btnLife.innerHTML = imgOrVideo.classList.contains('forced-color') ? '<i class="fas fa-heart"></i> Vivida' : '<i class="fas fa-feather-alt"></i> Dar vida';
-                    }
-                });
-                
-                btnShare.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    shareMedia(media.id, media.caption);
-                });
-            }
-        });
-        
-        // Autoplay para vídeos hover
         document.querySelectorAll('video').forEach(video => {
             video.addEventListener('mouseenter', () => video.play().catch(()=>{}));
             video.addEventListener('mouseleave', () => { video.pause(); video.currentTime = 0; });
@@ -760,15 +734,20 @@
     
     function renderAdminList(){ if(!adminPhotoListDiv) return; if(!allMedia.length){ adminPhotoListDiv.innerHTML="<p>Nenhuma mídia</p>"; return; } adminPhotoListDiv.innerHTML=allMedia.map(m=>`<div class="admin-photo-item">${m.type==='image'?`<img src="${m.url}">`:`<video src="${m.url}" muted></video>`}<div><strong>${escapeHtml(m.caption||"sem legenda")}</strong><br><small>${m.type}</small></div><div><button class="edit-photo-btn" data-id="${m.id}"><i class="fas fa-edit"></i> Editar</button><button class="delete-photo-btn" data-id="${m.id}"><i class="fas fa-trash"></i> Excluir</button></div></div>`).join(''); document.querySelectorAll('.delete-photo-btn').forEach(btn=>btn.addEventListener('click',async(e)=>{ const id=btn.getAttribute('data-id'); if(!confirm("Remover?")) return; await deleteMedia(id); })); document.querySelectorAll('.edit-photo-btn').forEach(btn=>btn.addEventListener('click',(e)=>{ const id=btn.getAttribute('data-id'); const media=allMedia.find(p=>p.id==id); if(media){ document.getElementById('editMediaId').value=id; document.getElementById('editCaption').value=media.caption||''; document.getElementById('editMediaFile').value=''; document.getElementById('editModal').style.display='flex'; } })); }
     
-    function updateFloatingButtons(){ 
-        const wBtn=document.getElementById('whatsappBtn'), cBtn=document.getElementById('callBtn'), iBtn=document.getElementById('instagramBtn'), aBtn=document.getElementById('addressBtn');
-        if(wBtn) wBtn.href=`https://wa.me/${contacts.whatsapp.replace(/[^0-9+]/g,'')}`;
-        if(cBtn) cBtn.href=`tel:${contacts.phone.replace(/[^0-9+]/g,'')}`;
-        if(iBtn) iBtn.href=`https://instagram.com/${contacts.instagram.replace('@','')}`;
-        if(aBtn) aBtn.onclick=(e)=>{ e.preventDefault(); alert(`📍 ${contacts.address}`); };
-        if(instagramFooterLink) instagramFooterLink.href = `https://instagram.com/${contacts.instagram.replace('@','')}`;
-        if(whatsappFooterLink) whatsappFooterLink.href = `https://wa.me/${contacts.whatsapp.replace(/[^0-9+]/g,'')}`;
-        if(logoHomeLink) logoHomeLink.onclick = (e) => { e.preventDefault(); document.querySelector('[data-view="gallery"]').click(); };
+    function updateLinks() {
+        const menuInsta = document.getElementById('menuInstagramLink');
+        const menuWhats = document.getElementById('menuWhatsappLink');
+        const menuCall = document.getElementById('menuCallLink');
+        const menuAddress = document.getElementById('menuAddressLink');
+        const footerInsta = document.getElementById('instagramFooterLink');
+        const footerWhats = document.getElementById('whatsappFooterLink');
+        
+        if(menuInsta) menuInsta.href = `https://instagram.com/${contacts.instagram.replace('@','')}`;
+        if(menuWhats) menuWhats.href = `https://wa.me/${contacts.whatsapp.replace(/[^0-9+]/g,'')}`;
+        if(menuCall) menuCall.href = `tel:${contacts.phone.replace(/[^0-9+]/g,'')}`;
+        if(menuAddress) menuAddress.onclick = (e) => { e.preventDefault(); alert(`📍 ${contacts.address}`); };
+        if(footerInsta) footerInsta.href = `https://instagram.com/${contacts.instagram.replace('@','')}`;
+        if(footerWhats) footerWhats.href = `https://wa.me/${contacts.whatsapp.replace(/[^0-9+]/g,'')}`;
     }
     
     function showLoginModal(){ 
@@ -778,16 +757,51 @@
         const login=async()=>{ 
             if(ov.querySelector('#loginUser').value===ADMIN_USERNAME && ov.querySelector('#loginPass').value===ADMIN_PASSWORD){ 
                 const authed = await ensureAuthForWrite(); 
-                if(authed){ isAdminLoggedIn=true; ov.remove(); document.getElementById('adminView').classList.add('active-view'); document.getElementById('galleryView').classList.remove('active-view'); document.getElementById('aboutView').classList.remove('active-view'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.querySelector('[data-view="admin"]').classList.add('active'); renderAdminList(); } else { ov.querySelector('#loginErr').innerText="Falha na autenticação Firebase."; } 
+                if(authed){ isAdminLoggedIn=true; ov.remove(); document.getElementById('adminView').classList.add('active-view'); document.getElementById('galleryView').classList.remove('active-view'); document.getElementById('aboutView').classList.remove('active-view'); document.querySelectorAll('.nav-link').forEach(b=>b.classList.remove('active')); renderAdminList(); } else { ov.querySelector('#loginErr').innerText="Falha na autenticação Firebase."; } 
             }else{ ov.querySelector('#loginErr').innerText="Credenciais inválidas"; } 
         }; 
-        const backToHome = () => { ov.remove(); document.getElementById('galleryView').classList.add('active-view'); document.getElementById('aboutView').classList.remove('active-view'); document.getElementById('adminView').classList.remove('active-view'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.querySelector('[data-view="gallery"]').classList.add('active'); };
+        const backToHome = () => { ov.remove(); document.getElementById('galleryView').classList.add('active-view'); document.getElementById('aboutView').classList.remove('active-view'); document.getElementById('adminView').classList.remove('active-view'); };
         ov.querySelector('#loginBtn').onclick=login; ov.querySelector('#backToHomeBtn').onclick=backToHome; ov.querySelector('#loginPass').addEventListener('keypress',e=>{if(e.key==='Enter')login();});
     }
     
-    function initNav(){ document.querySelectorAll('.nav-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ const v=btn.getAttribute('data-view'); if(v==='admin' && !isAdminLoggedIn){ showLoginModal(); return; } document.querySelectorAll('.view').forEach(vw=>vw.classList.remove('active-view')); document.getElementById(`${v}View`).classList.add('active-view'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); if(v==='admin' && isAdminLoggedIn) renderAdminList(); }); }); adminLogoutBtn.addEventListener('click',()=>{ isAdminLoggedIn=false; alert("Logout"); document.querySelector('[data-view="gallery"]').click(); }); }
+    function initNav(){ 
+        document.querySelectorAll('.nav-link').forEach(btn=>{ 
+            btn.addEventListener('click',(e)=>{ 
+                const v=btn.getAttribute('data-view'); 
+                if(v==='admin' && !isAdminLoggedIn){ e.preventDefault(); showLoginModal(); return; }
+                if(v) {
+                    e.preventDefault();
+                    document.querySelectorAll('.view').forEach(vw=>vw.classList.remove('active-view')); 
+                    document.getElementById(`${v}View`).classList.add('active-view');
+                    if(v==='admin' && isAdminLoggedIn) renderAdminList();
+                    const sideMenu = document.getElementById('sideMenu');
+                    sideMenu.classList.remove('open');
+                }
+            }); 
+        }); 
+        adminLogoutBtn.addEventListener('click',()=>{ isAdminLoggedIn=false; alert("Logout"); document.getElementById('galleryView').classList.add('active-view'); document.getElementById('aboutView').classList.remove('active-view'); document.getElementById('adminView').classList.remove('active-view'); }); 
+    }
     
-    const menuToggle=document.getElementById('menuToggle'), floatingMenu=document.getElementById('floatingMenu'); if(menuToggle) menuToggle.addEventListener('click',()=>floatingMenu.classList.toggle('open'));
+    // Menu sanduíche
+    const menuToggleBtn = document.getElementById('menuToggleBtn');
+    const sideMenu = document.getElementById('sideMenu');
+    const closeMenuBtn = document.getElementById('closeMenuBtn');
+    
+    if(menuToggleBtn) {
+        menuToggleBtn.addEventListener('click', () => {
+            sideMenu.classList.add('open');
+        });
+    }
+    if(closeMenuBtn) {
+        closeMenuBtn.addEventListener('click', () => {
+            sideMenu.classList.remove('open');
+        });
+    }
+    // Fechar ao clicar fora
+    sideMenu.addEventListener('click', (e) => {
+        if(e.target === sideMenu) sideMenu.classList.remove('open');
+    });
+    
     const backBtn=document.getElementById('backToTop'); window.addEventListener('scroll',()=>{ if(backBtn) backBtn.classList.toggle('show',window.scrollY>300); }); if(backBtn) backBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
     
     saveSettingsBtn?.addEventListener('click',saveSiteSettings);
