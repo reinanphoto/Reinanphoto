@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -24,11 +23,10 @@
     <title>Reinan Photo | Portfolio Fotográfico</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, doc, getDocs, addDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        window.firebaseAppInstance = { initializeApp, getFirestore, collection, doc, getDocs, addDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDoc, setDoc };
+        import { getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        window.firebaseAppInstance = { initializeApp, getFirestore, collection, doc, addDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDoc, setDoc };
     </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -165,7 +163,7 @@
     
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
     
-    // Função de upload CORRIGIDA para Cloudinary
+    // Função de upload CORRIGIDA (sem transformation)
     async function uploadToCloudinary(file) {
         const isVideo = file.type.startsWith('video/');
         const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${isVideo ? 'video' : 'image'}/upload`;
@@ -173,25 +171,13 @@
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
         
-        // Adiciona transformações para otimização
-        if (isVideo) {
-            formData.append('transformation', 'q_auto:good,f_auto,vc_h264,du_5');
-        } else {
-            formData.append('transformation', 'q_auto,f_auto');
+        // NÃO adicione 'transformation' em unsigned uploads
+        const response = await fetch(url, { method: 'POST', body: formData });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error?.message || 'Upload falhou');
         }
-        
-        try {
-            const response = await fetch(url, { method: 'POST', body: formData });
-            const data = await response.json();
-            if (!response.ok) {
-                console.error('Cloudinary error:', data);
-                throw new Error(data.error?.message || 'Upload falhou');
-            }
-            return data.secure_url;
-        } catch (err) {
-            console.error('Upload exception:', err);
-            throw new Error(`Erro no upload: ${err.message}`);
-        }
+        return data.secure_url;
     }
     
     async function initFirebase() {
@@ -209,7 +195,7 @@
         } catch(e) { console.error("Firebase init error", e); alert("Erro ao conectar ao Firebase. Verifique sua conexão."); }
     }
     
-    async function loadSiteSettings() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "siteConfig")); if(snap.exists()){ const d=snap.data(); siteTitleEl.innerText=d.siteTitle||"Reinan Photo"; siteSubtitleEl.innerText=d.siteSubtitle||""; if(d.logoUrl) siteLogoImg.src=d.logoUrl; adminSiteTitle.value=d.siteTitle||""; adminSubtitle.value=d.siteSubtitle||""; } else { await setDoc(doc(db, "settings", "siteConfig"), { siteTitle: "Reinan Photo", siteSubtitle: "fotografia & sentimentos" }); } } catch(e){} }
+    async function loadSiteSettings() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "siteConfig")); if(snap.exists()){ const d=snap.data(); siteTitleEl.innerText=d.siteTitle||"Reinan Photo"; siteSubtitleEl.innerText=d.siteSubtitle||""; if(d.logoUrl) siteLogoImg.src=d.logoUrl; adminSiteTitle.value=d.siteTitle||""; adminSubtitle.value=d.siteSubtitle||""; } else { const { setDoc } = window.dbHelpers; await setDoc(doc(db, "settings", "siteConfig"), { siteTitle: "Reinan Photo", siteSubtitle: "fotografia & sentimentos" }); } } catch(e){} }
     async function saveSiteSettings() { const title=adminSiteTitle.value.trim()||"Reinan Photo", sub=adminSubtitle.value.trim()||""; siteTitleEl.innerText=title; siteSubtitleEl.innerText=sub; if(firestoreReady){ try{ const { updateDoc, doc }=window.dbHelpers; await updateDoc(doc(db,"settings","siteConfig"),{siteTitle:title,siteSubtitle:sub}); }catch(e){} } alert("Configurações salvas!"); }
     async function uploadLogoLogic(){ const file=logoUpload.files[0]; if(!file) return; try{ const url=await uploadToCloudinary(file); siteLogoImg.src=url; if(firestoreReady){ const { updateDoc, doc }=window.dbHelpers; await updateDoc(doc(db,"settings","siteConfig"),{logoUrl:url}); } alert("Logo atualizada"); }catch(e){ alert("Erro:"+e.message); } }
     async function loadContacts() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "contacts")); if(snap.exists()){ contacts = snap.data(); updateFloatingButtons(); adminWhatsapp.value=contacts.whatsapp||""; adminPhone.value=contacts.phone||""; adminInstagram.value=contacts.instagram||""; adminAddress.value=contacts.address||""; } else { await setDoc(doc(db, "settings", "contacts"), contacts); } } catch(e){} }
@@ -217,7 +203,7 @@
     async function loadAboutContent() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "about")); if(snap.exists()){ aboutHtml = snap.data().content; } else { aboutHtml = `<i class="fas fa-camera-retro" style="font-size: 2rem; margin-bottom: 1rem;"></i><h2 style="font-weight: 400;">Reinan Photo</h2><p>Fotografia documental e artística. Capturo a essência do instante, a luz que transforma o ordinário em extraordinário.</p><p style="margin-top: 1rem; font-size: 0.9rem;">📍 ${contacts.address}</p>`; await setDoc(doc(db, "settings", "about"), { content: aboutHtml }); } renderAbout(); if(aboutEditor) aboutEditor.value = aboutHtml; } catch(e){} }
     async function saveAboutContent() { const newContent = aboutEditor.value; if(!newContent) return; aboutHtml = newContent; if(firestoreReady){ try{ const { setDoc, doc }=window.dbHelpers; await setDoc(doc(db,"settings","about"), { content: aboutHtml }); }catch(e){} } renderAbout(); alert("Conteúdo 'Sobre' atualizado!"); }
     function renderAbout() { if(aboutContentDiv) aboutContentDiv.innerHTML = aboutHtml; }
-    async function uploadNewMedia(){ const file=mediaFile.files[0], cap=mediaCaption.value.trim(); if(!file){ uploadStatus.innerText="Selecione um arquivo"; return; } uploadStatus.innerText="Enviando e otimizando..."; try{ const url=await uploadToCloudinary(file); const type = file.type.startsWith('image/') ? 'image' : 'video'; if(firestoreReady){ const { addDoc, collection }=window.dbHelpers; await addDoc(collection(db,"media"),{url:url,caption:cap||"Sem legenda",type:type,createdAt:new Date().toISOString()}); } uploadStatus.innerText="Publicada com sucesso!"; mediaFile.value=""; mediaCaption.value=""; setTimeout(()=>uploadStatus.innerText="",3000); }catch(e){ uploadStatus.innerText="Erro: "+e.message; console.error(e); } }
+    async function uploadNewMedia(){ const file=mediaFile.files[0], cap=mediaCaption.value.trim(); if(!file){ uploadStatus.innerText="Selecione um arquivo"; return; } uploadStatus.innerText="Enviando..."; try{ const url=await uploadToCloudinary(file); const type = file.type.startsWith('image/') ? 'image' : 'video'; if(firestoreReady){ const { addDoc, collection }=window.dbHelpers; await addDoc(collection(db,"media"),{url:url,caption:cap||"Sem legenda",type:type,createdAt:new Date().toISOString()}); } uploadStatus.innerText="Publicada com sucesso!"; mediaFile.value=""; mediaCaption.value=""; setTimeout(()=>uploadStatus.innerText="",3000); }catch(e){ uploadStatus.innerText="Erro: "+e.message; console.error(e); } }
     async function editMedia(mediaId, newCaption, newFile) { let newUrl = null; let newType = null; if(newFile) { newUrl = await uploadToCloudinary(newFile); newType = newFile.type.startsWith('image/') ? 'image' : 'video'; } if(firestoreReady && !mediaId.toString().startsWith('test_')){ const { updateDoc, doc }=window.dbHelpers; const updates = { caption: newCaption }; if(newUrl) { updates.url = newUrl; updates.type = newType; } await updateDoc(doc(db,"media",mediaId), updates); } }
     function subscribeToMedia(){ if(!firestoreReady) return; const { onSnapshot, collection, query, orderBy }=window.dbHelpers; onSnapshot(query(collection(db,"media"),orderBy("createdAt","desc")),(snap)=>{ allMedia = snap.docs.map(d=>({id:d.id,url:d.data().url,caption:d.data().caption,type:d.data().type})); renderGallery(); if(isAdminLoggedIn) renderAdminList(); }); }
     
