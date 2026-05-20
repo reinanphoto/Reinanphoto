@@ -58,14 +58,13 @@
         .title-group h1 { font-size: 1.5rem; font-weight: 500; letter-spacing: -0.5px; }
         .subtitle { font-size: 0.75rem; font-weight: 300; color: #3a3a3a; margin-top: 2px; }
         
-        /* Menu com distribuição lado-esquerdo, centro, lado-direito */
+        /* Menu com botões mais próximos (centralizados e com gap) */
         .main-nav {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
+            gap: 2rem;
+            flex-wrap: wrap;
         }
         .nav-btn {
             background: none;
@@ -77,33 +76,58 @@
             color: #2c2c2c;
             transition: all 0.3s ease;
             border-bottom: 2px solid transparent;
-            flex: 0 1 auto;
         }
         .nav-btn.active { border-bottom-color: #000; color: #000; }
         .nav-btn:hover { color: #ff6b6b; transform: translateY(-2px); }
-        /* Forçar centralização do botão "Sobre" usando ordem flex */
-        .nav-btn[data-view="gallery"] { order: 1; text-align: left; }
-        .nav-btn[data-view="about"] { order: 2; text-align: center; }
-        .nav-btn[data-view="admin"] { order: 3; text-align: right; }
         
         .view { display: none; animation: fadeIn 0.3s ease; }
         .view.active-view { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
-        .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-        .photo-card { position: relative; background: #fafafa; border-radius: 20px; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.03); display: flex; flex-direction: column; }
+        
+        /* Grid com duas colunas e altura automática (mosaico) */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        .photo-card {
+            position: relative;
+            background: #fafafa;
+            border-radius: 20px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+        }
         .photo-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        .media-wrapper { position: relative; cursor: pointer; overflow: hidden; background: #f0f0f0; width: 100%; }
-        .photo-img, .video-media { width: 100%; height: auto; display: block; transition: filter 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1); }
+        .media-wrapper {
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            background: #f0f0f0;
+            width: 100%;
+        }
+        /* Garantir que imagens e vídeos respeitem a proporção original e criem mosaico */
+        .photo-img, .video-media {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover; /* preenche o espaço sem distorcer, mantendo proporção */
+            transition: filter 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
         .photo-img { filter: grayscale(100%); }
         .photo-img:hover { filter: grayscale(0%); }
         .photo-img.forced-color, .video-media.forced-color { filter: grayscale(0%) !important; }
         .video-media { filter: grayscale(100%); transition: filter 0.4s; }
         .video-media:hover { filter: grayscale(0%); }
+        
         .btn-life, .btn-share { position: absolute; bottom: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); border: none; color: white; font-size: 0.7rem; padding: 5px 10px; border-radius: 40px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 5px; transition: all 0.3s; z-index: 2; }
         .btn-life { right: 10px; }
         .btn-share { left: 10px; }
         .btn-life:hover, .btn-share:hover { background: #ff6b6b; transform: scale(1.05); color: white; }
         .media-caption { padding: 10px 12px; font-size: 0.8rem; font-weight: 400; color: #1f1f1f; border-top: 1px solid #efefef; background: white; }
+        
         .admin-panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 24px; padding: 1.5rem; margin-bottom: 1.5rem; }
         .form-group { margin-bottom: 1.2rem; }
         label { font-weight: 500; display: block; margin-bottom: 6px; font-size: 0.85rem; }
@@ -113,6 +137,7 @@
         button:hover { background: linear-gradient(135deg, #ff6b6b, #ff4757); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,107,107,0.3); }
         button.secondary { background: #eaeaea; color: #111; }
         button.secondary:hover { background: #ff6b6b; color: white; }
+        
         .floating-menu { position: fixed; bottom: 25px; right: 20px; z-index: 999; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
         .floating-btn { width: 55px; height: 55px; border-radius: 30px; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 20px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; color: white; font-size: 1.4rem; text-decoration: none; }
         .floating-btn.social-item.whatsapp { background: #25D366; background: radial-gradient(circle at 30% 30%, #25D366, #128C7E); }
@@ -123,9 +148,11 @@
         .floating-btn.social-item { transform: scale(0); opacity: 0; pointer-events: none; background: rgba(30,30,30,0.7); color: white; }
         .floating-menu.open .social-item { transform: scale(1); opacity: 1; pointer-events: auto; }
         .floating-btn:hover { transform: scale(1.08); filter: brightness(1.1); }
+        
         .back-to-top { position: fixed; bottom: 25px; left: 20px; width: 48px; height: 48px; border-radius: 30px; background: rgba(0,0,0,0.65); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 999; transition: all 0.3s; color: white; opacity: 0; visibility: hidden; }
         .back-to-top.show { opacity: 1; visibility: visible; }
         .back-to-top:hover { background: #ff6b6b; transform: scale(1.05); }
+        
         .login-overlay, .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(12px); z-index: 2000; display: flex; justify-content: center; align-items: center; }
         .login-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 40px; padding: 2rem; width: 90%; max-width: 360px; text-align: center; }
         .modal-content { background: transparent; max-width: 90vw; max-height: 90vh; }
@@ -134,18 +161,20 @@
         #modalImage, #modalVideo { max-width: 100%; max-height: 80vh; display: block; margin: auto; }
         .close-modal { background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; }
         .close-modal:hover { background: #ff6b6b; transform: scale(1.05); }
+        
         .about-text { max-width: 680px; margin: 2rem auto; font-size: 1rem; line-height: 1.6; text-align: center; padding: 0 1rem; }
         .admin-photo-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 0; border-bottom: 1px solid #f0f0f0; flex-wrap: wrap; }
         .admin-photo-item img, .admin-photo-item video { width: 55px; height: 55px; object-fit: cover; border-radius: 12px; }
         .edit-photo-btn, .delete-photo-btn { padding: 6px 14px; margin-left: 5px; font-size: 0.75rem; }
         .edit-photo-btn { background: #4a4a4a; }
         .edit-photo-btn:hover { background: #ffa502; }
+        
         @media (max-width: 768px) {
             .app-container { padding: 1rem 1rem 5rem; }
             .photo-grid { gap: 0.8rem; }
             .floating-btn { width: 48px; height: 48px; font-size: 1.2rem; }
             .back-to-top { width: 44px; height: 44px; bottom: 20px; left: 15px; }
-            .main-nav { max-width: 100%; }
+            .main-nav { gap: 1rem; }
         }
         @media (max-width: 480px) {
             .btn-life, .btn-share { font-size: 0.6rem; padding: 4px 8px; }
