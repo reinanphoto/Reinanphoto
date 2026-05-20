@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -103,6 +104,7 @@
             .btn-life, .btn-share { font-size: 0.6rem; padding: 4px 8px; }
             .media-caption { font-size: 0.7rem; padding: 8px 10px; }
         }
+        .warning-banner { background: #fff3cd; color: #856404; padding: 8px 16px; border-radius: 12px; margin-bottom: 1rem; font-size: 0.8rem; text-align: center; }
     </style>
 </head>
 <body>
@@ -115,7 +117,10 @@
             <button class="nav-btn" data-view="admin"><i class="fas fa-lock"></i> Admin</button>
         </nav>
     </header>
-    <div id="galleryView" class="view active-view"><div id="photoGrid" class="photo-grid"></div></div>
+    <div id="galleryView" class="view active-view">
+        <div id="warningMsg" class="warning-banner" style="display:none;"></div>
+        <div id="photoGrid" class="photo-grid"></div>
+    </div>
     <div id="aboutView" class="view"><div id="aboutContent" class="about-text"><i class="fas fa-camera-retro" style="font-size: 2rem; margin-bottom: 1rem;"></i><h2 style="font-weight: 400;">Reinan Photo</h2><p>Carregando...</p></div></div>
     <div id="adminView" class="view">
         <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;"><button id="adminLogoutBtn" style="background:#eee; color:#333;"><i class="fas fa-sign-out-alt"></i> Sair</button></div>
@@ -149,6 +154,7 @@
     let allMedia = [], isAdminLoggedIn = false, db, firestoreReady = false;
     let contacts = { whatsapp: "+351912345678", phone: "+351912345678", instagram: "@reinanphoto", address: "Rua da Fotografia, 123 - Lisboa" };
     let aboutHtml = "";
+    let readPermissionDenied = false;
     
     // DOM elements
     const photoGrid = document.getElementById('photoGrid'), adminPhotoListDiv = document.getElementById('adminPhotoList');
@@ -160,23 +166,23 @@
     const mediaFile = document.getElementById('mediaFile'), mediaCaption = document.getElementById('mediaCaption'), uploadMediaBtn = document.getElementById('uploadMediaBtn'), uploadStatus = document.getElementById('uploadStatus');
     const adminLogoutBtn = document.getElementById('adminLogoutBtn');
     const aboutEditor = document.getElementById('aboutEditor'), saveAboutBtn = document.getElementById('saveAboutBtn'), aboutContentDiv = document.getElementById('aboutContent');
+    const warningDiv = document.getElementById('warningMsg');
     
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
     
-    // Função de upload CORRIGIDA (sem transformation)
+    // Cache no localStorage
+    function saveMediaToCache() { localStorage.setItem('reinan_media_cache', JSON.stringify(allMedia)); }
+    function loadMediaFromCache() { const cached = localStorage.getItem('reinan_media_cache'); if(cached) { try { allMedia = JSON.parse(cached); renderGallery(); if(isAdminLoggedIn) renderAdminList(); } catch(e){} } }
+    
     async function uploadToCloudinary(file) {
         const isVideo = file.type.startsWith('video/');
         const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${isVideo ? 'video' : 'image'}/upload`;
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        
-        // NÃO adicione 'transformation' em unsigned uploads
         const response = await fetch(url, { method: 'POST', body: formData });
         const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.error?.message || 'Upload falhou');
-        }
+        if (!response.ok) throw new Error(data.error?.message || 'Upload falhou');
         return data.secure_url;
     }
     
@@ -192,7 +198,7 @@
             await loadContacts();
             await loadAboutContent();
             subscribeToMedia();
-        } catch(e) { console.error("Firebase init error", e); alert("Erro ao conectar ao Firebase. Verifique sua conexão."); }
+        } catch(e) { console.error("Firebase init error", e); warningDiv.style.display = 'block'; warningDiv.innerText = '⚠️ Erro ao conectar ao Firebase. Usando dados locais (cache).'; loadMediaFromCache(); }
     }
     
     async function loadSiteSettings() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "siteConfig")); if(snap.exists()){ const d=snap.data(); siteTitleEl.innerText=d.siteTitle||"Reinan Photo"; siteSubtitleEl.innerText=d.siteSubtitle||""; if(d.logoUrl) siteLogoImg.src=d.logoUrl; adminSiteTitle.value=d.siteTitle||""; adminSubtitle.value=d.siteSubtitle||""; } else { const { setDoc } = window.dbHelpers; await setDoc(doc(db, "settings", "siteConfig"), { siteTitle: "Reinan Photo", siteSubtitle: "fotografia & sentimentos" }); } } catch(e){} }
@@ -203,9 +209,10 @@
     async function loadAboutContent() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "about")); if(snap.exists()){ aboutHtml = snap.data().content; } else { aboutHtml = `<i class="fas fa-camera-retro" style="font-size: 2rem; margin-bottom: 1rem;"></i><h2 style="font-weight: 400;">Reinan Photo</h2><p>Fotografia documental e artística. Capturo a essência do instante, a luz que transforma o ordinário em extraordinário.</p><p style="margin-top: 1rem; font-size: 0.9rem;">📍 ${contacts.address}</p>`; await setDoc(doc(db, "settings", "about"), { content: aboutHtml }); } renderAbout(); if(aboutEditor) aboutEditor.value = aboutHtml; } catch(e){} }
     async function saveAboutContent() { const newContent = aboutEditor.value; if(!newContent) return; aboutHtml = newContent; if(firestoreReady){ try{ const { setDoc, doc }=window.dbHelpers; await setDoc(doc(db,"settings","about"), { content: aboutHtml }); }catch(e){} } renderAbout(); alert("Conteúdo 'Sobre' atualizado!"); }
     function renderAbout() { if(aboutContentDiv) aboutContentDiv.innerHTML = aboutHtml; }
-    async function uploadNewMedia(){ const file=mediaFile.files[0], cap=mediaCaption.value.trim(); if(!file){ uploadStatus.innerText="Selecione um arquivo"; return; } uploadStatus.innerText="Enviando..."; try{ const url=await uploadToCloudinary(file); const type = file.type.startsWith('image/') ? 'image' : 'video'; if(firestoreReady){ const { addDoc, collection }=window.dbHelpers; await addDoc(collection(db,"media"),{url:url,caption:cap||"Sem legenda",type:type,createdAt:new Date().toISOString()}); } uploadStatus.innerText="Publicada com sucesso!"; mediaFile.value=""; mediaCaption.value=""; setTimeout(()=>uploadStatus.innerText="",3000); }catch(e){ uploadStatus.innerText="Erro: "+e.message; console.error(e); } }
-    async function editMedia(mediaId, newCaption, newFile) { let newUrl = null; let newType = null; if(newFile) { newUrl = await uploadToCloudinary(newFile); newType = newFile.type.startsWith('image/') ? 'image' : 'video'; } if(firestoreReady && !mediaId.toString().startsWith('test_')){ const { updateDoc, doc }=window.dbHelpers; const updates = { caption: newCaption }; if(newUrl) { updates.url = newUrl; updates.type = newType; } await updateDoc(doc(db,"media",mediaId), updates); } }
-    function subscribeToMedia(){ if(!firestoreReady) return; const { onSnapshot, collection, query, orderBy }=window.dbHelpers; onSnapshot(query(collection(db,"media"),orderBy("createdAt","desc")),(snap)=>{ allMedia = snap.docs.map(d=>({id:d.id,url:d.data().url,caption:d.data().caption,type:d.data().type})); renderGallery(); if(isAdminLoggedIn) renderAdminList(); }); }
+    async function uploadNewMedia(){ const file=mediaFile.files[0], cap=mediaCaption.value.trim(); if(!file){ uploadStatus.innerText="Selecione um arquivo"; return; } uploadStatus.innerText="Enviando..."; try{ const url=await uploadToCloudinary(file); const type = file.type.startsWith('image/') ? 'image' : 'video'; if(firestoreReady){ const { addDoc, collection }=window.dbHelpers; await addDoc(collection(db,"media"),{url:url,caption:cap||"Sem legenda",type:type,createdAt:new Date().toISOString()}); } else { const newMedia = { id: Date.now().toString(), url: url, caption: cap||"Sem legenda", type: type }; allMedia.unshift(newMedia); saveMediaToCache(); renderGallery(); if(isAdminLoggedIn) renderAdminList(); } uploadStatus.innerText="Publicada com sucesso!"; mediaFile.value=""; mediaCaption.value=""; setTimeout(()=>uploadStatus.innerText="",3000); }catch(e){ uploadStatus.innerText="Erro: "+e.message; console.error(e); } }
+    async function editMedia(mediaId, newCaption, newFile) { let newUrl = null; let newType = null; if(newFile) { newUrl = await uploadToCloudinary(newFile); newType = newFile.type.startsWith('image/') ? 'image' : 'video'; } if(firestoreReady && !mediaId.toString().startsWith('test_')){ const { updateDoc, doc }=window.dbHelpers; const updates = { caption: newCaption }; if(newUrl) { updates.url = newUrl; updates.type = newType; } await updateDoc(doc(db,"media",mediaId), updates); } else { const index = allMedia.findIndex(m=>m.id==mediaId); if(index!==-1){ allMedia[index].caption = newCaption; if(newUrl) { allMedia[index].url = newUrl; allMedia[index].type = newType; } saveMediaToCache(); renderGallery(); if(isAdminLoggedIn) renderAdminList(); } } }
+    function subscribeToMedia(){ if(!firestoreReady) return; const { onSnapshot, collection, query, orderBy }=window.dbHelpers; onSnapshot(query(collection(db,"media"),orderBy("createdAt","desc")), (snap) => { if(snap.empty && !readPermissionDenied) { loadMediaFromCache(); warningDiv.style.display = 'block'; warningDiv.innerText = '⚠️ Nenhum dado encontrado no Firebase. Exibindo itens do cache local. Verifique as regras de leitura do Firestore.'; readPermissionDenied = true; } else { readPermissionDenied = false; warningDiv.style.display = 'none'; allMedia = snap.docs.map(d=>({id:d.id,url:d.data().url,caption:d.data().caption,type:d.data().type})); saveMediaToCache(); renderGallery(); if(isAdminLoggedIn) renderAdminList(); } }, (error) => { console.error("Firestore read error:", error); warningDiv.style.display = 'block'; warningDiv.innerText = '⚠️ Erro ao ler dados do Firebase. Usando cache local. Verifique as regras de segurança do Firestore.'; loadMediaFromCache(); });
+    }
     
     function shareMedia(url, caption) {
         const whats = contacts.whatsapp || "+351912345678";
@@ -240,7 +247,7 @@
         document.querySelectorAll('.video-media').forEach(video=>{ video.addEventListener('mouseenter',()=>video.play().catch(()=>{})); video.addEventListener('mouseleave',()=>{video.pause(); video.currentTime=0;}); video.addEventListener('touchstart',()=>video.play().catch(()=>{})); });
     }
     
-    function renderAdminList(){ if(!adminPhotoListDiv) return; if(!allMedia.length){ adminPhotoListDiv.innerHTML="<p>Nenhuma mídia</p>"; return; } adminPhotoListDiv.innerHTML=allMedia.map(m=>`<div class="admin-photo-item">${m.type==='image'?`<img src="${m.url}">`:`<video src="${m.url}" muted></video>`}<div><strong>${escapeHtml(m.caption||"sem legenda")}</strong><br><small>${m.type}</small></div><div><button class="edit-photo-btn" data-id="${m.id}"><i class="fas fa-edit"></i> Editar</button><button class="delete-photo-btn" data-id="${m.id}"><i class="fas fa-trash"></i> Excluir</button></div></div>`).join(''); document.querySelectorAll('.delete-photo-btn').forEach(btn=>btn.addEventListener('click',async(e)=>{ const id=btn.getAttribute('data-id'); if(!confirm("Remover?")) return; if(firestoreReady){ const { deleteDoc, doc }=window.dbHelpers; await deleteDoc(doc(db,"media",id)); } })); document.querySelectorAll('.edit-photo-btn').forEach(btn=>btn.addEventListener('click',(e)=>{ const id=btn.getAttribute('data-id'); const media=allMedia.find(p=>p.id==id); if(media){ document.getElementById('editMediaId').value=id; document.getElementById('editCaption').value=media.caption||''; document.getElementById('editMediaFile').value=''; document.getElementById('editModal').style.display='flex'; } })); }
+    function renderAdminList(){ if(!adminPhotoListDiv) return; if(!allMedia.length){ adminPhotoListDiv.innerHTML="<p>Nenhuma mídia</p>"; return; } adminPhotoListDiv.innerHTML=allMedia.map(m=>`<div class="admin-photo-item">${m.type==='image'?`<img src="${m.url}">`:`<video src="${m.url}" muted></video>`}<div><strong>${escapeHtml(m.caption||"sem legenda")}</strong><br><small>${m.type}</small></div><div><button class="edit-photo-btn" data-id="${m.id}"><i class="fas fa-edit"></i> Editar</button><button class="delete-photo-btn" data-id="${m.id}"><i class="fas fa-trash"></i> Excluir</button></div></div>`).join(''); document.querySelectorAll('.delete-photo-btn').forEach(btn=>btn.addEventListener('click',async(e)=>{ const id=btn.getAttribute('data-id'); if(!confirm("Remover?")) return; if(firestoreReady && !id.toString().startsWith('test_')){ const { deleteDoc, doc }=window.dbHelpers; await deleteDoc(doc(db,"media",id)); } else { allMedia = allMedia.filter(m=>m.id!=id); saveMediaToCache(); renderGallery(); renderAdminList(); } })); document.querySelectorAll('.edit-photo-btn').forEach(btn=>btn.addEventListener('click',(e)=>{ const id=btn.getAttribute('data-id'); const media=allMedia.find(p=>p.id==id); if(media){ document.getElementById('editMediaId').value=id; document.getElementById('editCaption').value=media.caption||''; document.getElementById('editMediaFile').value=''; document.getElementById('editModal').style.display='flex'; } })); }
     
     function updateFloatingButtons(){ const wBtn=document.getElementById('whatsappBtn'), cBtn=document.getElementById('callBtn'), iBtn=document.getElementById('instagramBtn'), aBtn=document.getElementById('addressBtn'); if(wBtn) wBtn.href=`https://wa.me/${contacts.whatsapp.replace(/[^0-9+]/g,'')}`; if(cBtn) cBtn.href=`tel:${contacts.phone.replace(/[^0-9+]/g,'')}`; if(iBtn) iBtn.href=`https://instagram.com/${contacts.instagram.replace('@','')}`; if(aBtn) aBtn.onclick=(e)=>{ e.preventDefault(); alert(`📍 ${contacts.address}`); }; }
     
