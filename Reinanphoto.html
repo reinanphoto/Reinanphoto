@@ -31,35 +31,10 @@
         window.firebaseAppInstance = { initializeApp, getFirestore, collection, doc, getDocs, addDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDoc, setDoc };
     </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #ffffff;
-            color: #000000;
-            line-height: 1.5;
-            overflow-x: hidden;
-            touch-action: pan-y; /* desabilita zoom por pinça */
-        }
-        .app-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1.5rem 1.5rem 5rem;
-        }
-        .site-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            border-bottom: 1px solid #eaeaea;
-            padding-bottom: 1rem;
-            margin-bottom: 2rem;
-            gap: 1rem;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background: #fff; color: #000; line-height: 1.5; overflow-x: hidden; touch-action: pan-y; }
+        .app-container { max-width: 1400px; margin: 0 auto; padding: 1.5rem 1.5rem 5rem; }
+        .site-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #eaeaea; padding-bottom: 1rem; margin-bottom: 2rem; gap: 1rem; }
         .brand { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
         .logo-img { height: 45px; width: auto; max-width: 100px; object-fit: contain; background: #f5f5f5; border-radius: 10px; padding: 4px; }
         .title-group h1 { font-size: 1.5rem; font-weight: 500; letter-spacing: -0.5px; }
@@ -72,65 +47,21 @@
         .view.active-view { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
         .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-        .photo-card {
-            position: relative;
-            background: #fafafa;
-            border-radius: 20px;
-            overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-            display: flex;
-            flex-direction: column;
-        }
+        .photo-card { position: relative; background: #fafafa; border-radius: 20px; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.03); display: flex; flex-direction: column; }
         .photo-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        .media-wrapper {
-            position: relative;
-            cursor: pointer;
-            overflow: hidden;
-            background: #f0f0f0;
-            width: 100%;
-        }
-        .photo-img, .video-media {
-            width: 100%;
-            height: auto;
-            display: block;
-            transition: filter 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-        }
-        .photo-img {
-            filter: grayscale(100%);
-        }
+        .media-wrapper { position: relative; cursor: pointer; overflow: hidden; background: #f0f0f0; width: 100%; }
+        .photo-img, .video-media { width: 100%; height: auto; display: block; transition: filter 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1); }
+        .photo-img { filter: grayscale(100%); }
         .photo-img:hover { filter: grayscale(0%); }
-        .photo-img.forced-color { filter: grayscale(0%) !important; }
-        .video-media {
-            filter: grayscale(100%);
-            transition: filter 0.4s;
-        }
+        .photo-img.forced-color, .video-media.forced-color { filter: grayscale(0%) !important; }
+        .video-media { filter: grayscale(100%); transition: filter 0.4s; }
         .video-media:hover { filter: grayscale(0%); }
-        .video-media.forced-color { filter: grayscale(0%) !important; }
-        .btn-life, .btn-share {
-            position: absolute;
-            bottom: 10px;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            border: none;
-            color: white;
-            font-size: 0.7rem;
-            padding: 5px 10px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.3s;
-            z-index: 2;
-        }
+        .btn-life, .btn-share { position: absolute; bottom: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); border: none; color: white; font-size: 0.7rem; padding: 5px 10px; border-radius: 40px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 5px; transition: all 0.3s; z-index: 2; }
         .btn-life { right: 10px; }
         .btn-share { left: 10px; }
         .btn-life:hover, .btn-share:hover { background: #ff6b6b; transform: scale(1.05); color: white; }
         .media-caption { padding: 10px 12px; font-size: 0.8rem; font-weight: 400; color: #1f1f1f; border-top: 1px solid #efefef; background: white; }
-        /* Admin */
-        .admin-panel { background: #ffffff; border: 1px solid #e0e0e0; border-radius: 24px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .admin-panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 24px; padding: 1.5rem; margin-bottom: 1.5rem; }
         .form-group { margin-bottom: 1.2rem; }
         label { font-weight: 500; display: block; margin-bottom: 6px; font-size: 0.85rem; }
         input, textarea { width: 100%; padding: 12px 14px; border: 1px solid #ccc; border-radius: 14px; font-family: 'Inter', sans-serif; background: #fff; font-size: 16px; transition: all 0.3s; }
@@ -140,12 +71,12 @@
         button.secondary { background: #eaeaea; color: #111; }
         button.secondary:hover { background: #ff6b6b; color: white; }
         .floating-menu { position: fixed; bottom: 25px; right: 20px; z-index: 999; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
-        .floating-btn { width: 55px; height: 55px; border-radius: 30px; background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; color: #1a1a1a; font-size: 1.4rem; text-decoration: none; }
-        .floating-btn.main-btn { background: rgba(0, 0, 0, 0.75); color: white; }
-        .floating-btn.social-item { transform: scale(0); opacity: 0; pointer-events: none; background: rgba(30, 30, 30, 0.7); color: white; }
+        .floating-btn { width: 55px; height: 55px; border-radius: 30px; background: rgba(255,255,255,0.25); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 20px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; color: #1a1a1a; font-size: 1.4rem; text-decoration: none; }
+        .floating-btn.main-btn { background: rgba(0,0,0,0.75); color: white; }
+        .floating-btn.social-item { transform: scale(0); opacity: 0; pointer-events: none; background: rgba(30,30,30,0.7); color: white; }
         .floating-menu.open .social-item { transform: scale(1); opacity: 1; pointer-events: auto; }
         .floating-btn:hover { transform: scale(1.08); background: #ff6b6b; color: white; }
-        .back-to-top { position: fixed; bottom: 25px; left: 20px; width: 48px; height: 48px; border-radius: 30px; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 999; transition: all 0.3s; color: white; opacity: 0; visibility: hidden; }
+        .back-to-top { position: fixed; bottom: 25px; left: 20px; width: 48px; height: 48px; border-radius: 30px; background: rgba(0,0,0,0.65); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 999; transition: all 0.3s; color: white; opacity: 0; visibility: hidden; }
         .back-to-top.show { opacity: 1; visibility: visible; }
         .back-to-top:hover { background: #ff6b6b; transform: scale(1.05); }
         .login-overlay, .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(12px); z-index: 2000; display: flex; justify-content: center; align-items: center; }
@@ -234,22 +165,33 @@
     
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
     
+    // Função de upload CORRIGIDA para Cloudinary
     async function uploadToCloudinary(file) {
         const isVideo = file.type.startsWith('video/');
-        const fd = new FormData();
-        fd.append("file", file);
-        fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+        const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${isVideo ? 'video' : 'image'}/upload`;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        
+        // Adiciona transformações para otimização
         if (isVideo) {
-            fd.append("resource_type", "video");
-            fd.append("transformation", "q_auto:good,f_auto,vc_h264"); // otimiza vídeo
+            formData.append('transformation', 'q_auto:good,f_auto,vc_h264,du_5');
         } else {
-            fd.append("transformation", "q_auto,f_auto");
+            formData.append('transformation', 'q_auto,f_auto');
         }
-        let url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${isVideo ? 'video' : 'image'}/upload`;
-        const resp = await fetch(url, { method: "POST", body: fd });
-        if (!resp.ok) throw new Error("Upload falhou");
-        const data = await resp.json();
-        return data.secure_url;
+        
+        try {
+            const response = await fetch(url, { method: 'POST', body: formData });
+            const data = await response.json();
+            if (!response.ok) {
+                console.error('Cloudinary error:', data);
+                throw new Error(data.error?.message || 'Upload falhou');
+            }
+            return data.secure_url;
+        } catch (err) {
+            console.error('Upload exception:', err);
+            throw new Error(`Erro no upload: ${err.message}`);
+        }
     }
     
     async function initFirebase() {
@@ -267,19 +209,19 @@
         } catch(e) { console.error("Firebase init error", e); alert("Erro ao conectar ao Firebase. Verifique sua conexão."); }
     }
     
-    async function loadSiteSettings() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "siteConfig")); if(snap.exists()){ const d=snap.data(); siteTitleEl.innerText=d.siteTitle||"Reinan Photo"; siteSubtitleEl.innerText=d.siteSubtitle||""; if(d.logoUrl) siteLogoImg.src=d.logoUrl; adminSiteTitle.value=d.siteTitle||""; adminSubtitle.value=d.siteSubtitle||""; } } catch(e){} }
-    async function saveSiteSettings() { const title=adminSiteTitle.value.trim()||"Reinan Photo", sub=adminSubtitle.value.trim()||""; siteTitleEl.innerText=title; siteSubtitleEl.innerText=sub; if(firestoreReady){ try{ const { updateDoc, doc, setDoc }=window.dbHelpers; const ref=doc(db,"settings","siteConfig"); await updateDoc(ref,{siteTitle:title,siteSubtitle:sub}).catch(()=>setDoc(ref,{siteTitle:title,siteSubtitle:sub})); }catch(e){} } alert("Configurações salvas!"); }
+    async function loadSiteSettings() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "siteConfig")); if(snap.exists()){ const d=snap.data(); siteTitleEl.innerText=d.siteTitle||"Reinan Photo"; siteSubtitleEl.innerText=d.siteSubtitle||""; if(d.logoUrl) siteLogoImg.src=d.logoUrl; adminSiteTitle.value=d.siteTitle||""; adminSubtitle.value=d.siteSubtitle||""; } else { await setDoc(doc(db, "settings", "siteConfig"), { siteTitle: "Reinan Photo", siteSubtitle: "fotografia & sentimentos" }); } } catch(e){} }
+    async function saveSiteSettings() { const title=adminSiteTitle.value.trim()||"Reinan Photo", sub=adminSubtitle.value.trim()||""; siteTitleEl.innerText=title; siteSubtitleEl.innerText=sub; if(firestoreReady){ try{ const { updateDoc, doc }=window.dbHelpers; await updateDoc(doc(db,"settings","siteConfig"),{siteTitle:title,siteSubtitle:sub}); }catch(e){} } alert("Configurações salvas!"); }
     async function uploadLogoLogic(){ const file=logoUpload.files[0]; if(!file) return; try{ const url=await uploadToCloudinary(file); siteLogoImg.src=url; if(firestoreReady){ const { updateDoc, doc }=window.dbHelpers; await updateDoc(doc(db,"settings","siteConfig"),{logoUrl:url}); } alert("Logo atualizada"); }catch(e){ alert("Erro:"+e.message); } }
-    async function loadContacts() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "contacts")); if(snap.exists()){ contacts = snap.data(); updateFloatingButtons(); adminWhatsapp.value=contacts.whatsapp||""; adminPhone.value=contacts.phone||""; adminInstagram.value=contacts.instagram||""; adminAddress.value=contacts.address||""; } } catch(e){} }
+    async function loadContacts() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "contacts")); if(snap.exists()){ contacts = snap.data(); updateFloatingButtons(); adminWhatsapp.value=contacts.whatsapp||""; adminPhone.value=contacts.phone||""; adminInstagram.value=contacts.instagram||""; adminAddress.value=contacts.address||""; } else { await setDoc(doc(db, "settings", "contacts"), contacts); } } catch(e){} }
     async function saveContacts() { contacts = { whatsapp: adminWhatsapp.value.trim(), phone: adminPhone.value.trim(), instagram: adminInstagram.value.trim(), address: adminAddress.value.trim() }; if(firestoreReady){ try{ const { setDoc, doc }=window.dbHelpers; await setDoc(doc(db,"settings","contacts"), contacts); }catch(e){} } updateFloatingButtons(); alert("Contatos salvos!"); }
-    async function loadAboutContent() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "about")); if(snap.exists()){ aboutHtml = snap.data().content; } else { aboutHtml = `<i class="fas fa-camera-retro" style="font-size: 2rem; margin-bottom: 1rem;"></i><h2 style="font-weight: 400;">Reinan Photo</h2><p>Fotografia documental e artística. Capturo a essência do instante, a luz que transforma o ordinário em extraordinário.</p><p style="margin-top: 1rem; font-size: 0.9rem;">📍 ${contacts.address}</p>`; } renderAbout(); if(aboutEditor) aboutEditor.value = aboutHtml; } catch(e){} }
+    async function loadAboutContent() { if(!firestoreReady) return; try { const { getDoc, doc } = window.dbHelpers; const snap = await getDoc(doc(db, "settings", "about")); if(snap.exists()){ aboutHtml = snap.data().content; } else { aboutHtml = `<i class="fas fa-camera-retro" style="font-size: 2rem; margin-bottom: 1rem;"></i><h2 style="font-weight: 400;">Reinan Photo</h2><p>Fotografia documental e artística. Capturo a essência do instante, a luz que transforma o ordinário em extraordinário.</p><p style="margin-top: 1rem; font-size: 0.9rem;">📍 ${contacts.address}</p>`; await setDoc(doc(db, "settings", "about"), { content: aboutHtml }); } renderAbout(); if(aboutEditor) aboutEditor.value = aboutHtml; } catch(e){} }
     async function saveAboutContent() { const newContent = aboutEditor.value; if(!newContent) return; aboutHtml = newContent; if(firestoreReady){ try{ const { setDoc, doc }=window.dbHelpers; await setDoc(doc(db,"settings","about"), { content: aboutHtml }); }catch(e){} } renderAbout(); alert("Conteúdo 'Sobre' atualizado!"); }
     function renderAbout() { if(aboutContentDiv) aboutContentDiv.innerHTML = aboutHtml; }
-    async function uploadNewMedia(){ const file=mediaFile.files[0], cap=mediaCaption.value.trim(); if(!file){ uploadStatus.innerText="Selecione um arquivo"; return; } uploadStatus.innerText="Enviando e otimizando..."; try{ const url=await uploadToCloudinary(file); const type = file.type.startsWith('image/') ? 'image' : 'video'; if(firestoreReady){ const { addDoc, collection }=window.dbHelpers; await addDoc(collection(db,"media"),{url:url,caption:cap||"Sem legenda",type:type,createdAt:new Date().toISOString()}); }else{ allMedia.unshift({id:Date.now().toString(),url:url,caption:cap||"Sem legenda",type:type,isTest:true}); renderGallery(); if(isAdminLoggedIn) renderAdminList(); } uploadStatus.innerText="Publicada!"; mediaFile.value=""; mediaCaption.value=""; setTimeout(()=>uploadStatus.innerText="",3000); }catch(e){ uploadStatus.innerText="Erro:"+e.message; } }
-    async function editMedia(mediaId, newCaption, newFile) { let newUrl = null; if(newFile) newUrl = await uploadToCloudinary(newFile); if(firestoreReady && !mediaId.toString().startsWith('test_')){ const { updateDoc, doc }=window.dbHelpers; const updates = { caption: newCaption }; if(newUrl) { updates.url = newUrl; updates.type = newFile.type.startsWith('image/') ? 'image' : 'video'; } await updateDoc(doc(db,"media",mediaId), updates); }else{ const index = allMedia.findIndex(p=>p.id==mediaId); if(index!==-1){ allMedia[index].caption = newCaption; if(newUrl){ allMedia[index].url = newUrl; allMedia[index].type = newFile.type.startsWith('image/') ? 'image' : 'video'; } renderGallery(); if(isAdminLoggedIn) renderAdminList(); } } }
+    async function uploadNewMedia(){ const file=mediaFile.files[0], cap=mediaCaption.value.trim(); if(!file){ uploadStatus.innerText="Selecione um arquivo"; return; } uploadStatus.innerText="Enviando e otimizando..."; try{ const url=await uploadToCloudinary(file); const type = file.type.startsWith('image/') ? 'image' : 'video'; if(firestoreReady){ const { addDoc, collection }=window.dbHelpers; await addDoc(collection(db,"media"),{url:url,caption:cap||"Sem legenda",type:type,createdAt:new Date().toISOString()}); } uploadStatus.innerText="Publicada com sucesso!"; mediaFile.value=""; mediaCaption.value=""; setTimeout(()=>uploadStatus.innerText="",3000); }catch(e){ uploadStatus.innerText="Erro: "+e.message; console.error(e); } }
+    async function editMedia(mediaId, newCaption, newFile) { let newUrl = null; let newType = null; if(newFile) { newUrl = await uploadToCloudinary(newFile); newType = newFile.type.startsWith('image/') ? 'image' : 'video'; } if(firestoreReady && !mediaId.toString().startsWith('test_')){ const { updateDoc, doc }=window.dbHelpers; const updates = { caption: newCaption }; if(newUrl) { updates.url = newUrl; updates.type = newType; } await updateDoc(doc(db,"media",mediaId), updates); } }
     function subscribeToMedia(){ if(!firestoreReady) return; const { onSnapshot, collection, query, orderBy }=window.dbHelpers; onSnapshot(query(collection(db,"media"),orderBy("createdAt","desc")),(snap)=>{ allMedia = snap.docs.map(d=>({id:d.id,url:d.data().url,caption:d.data().caption,type:d.data().type})); renderGallery(); if(isAdminLoggedIn) renderAdminList(); }); }
     
-    function shareMedia(url, caption, type) {
+    function shareMedia(url, caption) {
         const whats = contacts.whatsapp || "+351912345678";
         const insta = contacts.instagram || "@reinanphoto";
         const text = `📸 *${caption}*\n\n✨ Faça seu orçamento! ✨\n📱 WhatsApp: ${whats}\n📷 Instagram: ${insta}\n\n💫 Reinan Photo - Transformando momentos em arte.`;
@@ -291,8 +233,8 @@
         const modal = document.getElementById('lightboxModal');
         const imgEl = document.getElementById('modalImage');
         const videoEl = document.getElementById('modalVideo');
-        imgEl.style.display = 'none'; videoEl.style.display = 'none'; videoEl.pause();
-        if(type === 'image') { imgEl.src = url; imgEl.style.display = 'block'; videoEl.style.display = 'none'; }
+        imgEl.style.display = 'none'; videoEl.style.display = 'none'; if(videoEl.pause) videoEl.pause();
+        if(type === 'image') { imgEl.src = url; imgEl.style.display = 'block'; }
         else { videoEl.src = url; videoEl.style.display = 'block'; videoEl.controls = true; videoEl.play().catch(()=>{}); }
         modal.style.display = 'flex';
         let zoom = 1;
@@ -305,14 +247,14 @@
         modal.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
     }
     
-    function renderGallery(){ if(!photoGrid) return; if(!allMedia.length){ photoGrid.innerHTML=`<div style="grid-column:span 2;text-align:center;padding:2rem;">Nenhuma mídia. Faça upload no admin.</div>`; return; } photoGrid.innerHTML=allMedia.map(m=>`<div class="photo-card" data-id="${m.id}"><div class="media-wrapper">${m.type === 'image' ? `<img class="photo-img" data-id="${m.id}" src="${m.url}" alt="${escapeHtml(m.caption)}">` : `<video class="video-media" data-id="${m.id}" src="${m.url}" muted loop playsinline></video>`}<button class="btn-life" data-id="${m.id}" data-type="${m.type}"><i class="fas fa-feather-alt"></i> Dar vida</button><button class="btn-share" data-id="${m.id}" data-url="${m.url}" data-caption="${escapeHtml(m.caption)}" data-type="${m.type}"><i class="fas fa-share-alt"></i> Compartilhar</button></div><div class="media-caption">${escapeHtml(m.caption)||"Sem legenda"}</div></div>`).join('');
+    function renderGallery(){ if(!photoGrid) return; if(!allMedia.length){ photoGrid.innerHTML=`<div style="grid-column:span 2;text-align:center;padding:2rem;">Nenhuma mídia. Faça upload no admin.</div>`; return; } photoGrid.innerHTML=allMedia.map(m=>`<div class="photo-card" data-id="${m.id}"><div class="media-wrapper">${m.type === 'image' ? `<img class="photo-img" data-id="${m.id}" src="${m.url}" alt="${escapeHtml(m.caption)}">` : `<video class="video-media" data-id="${m.id}" src="${m.url}" muted loop playsinline></video>`}<button class="btn-life" data-id="${m.id}" data-type="${m.type}"><i class="fas fa-feather-alt"></i> Dar vida</button><button class="btn-share" data-id="${m.id}" data-url="${m.url}" data-caption="${escapeHtml(m.caption)}"><i class="fas fa-share-alt"></i> Compartilhar</button></div><div class="media-caption">${escapeHtml(m.caption)||"Sem legenda"}</div></div>`).join('');
         document.querySelectorAll('.photo-img, .video-media').forEach(el=>{ el.addEventListener('click',(e)=>{ e.stopPropagation(); const parent = el.closest('.photo-card'); const id = parent.getAttribute('data-id'); const media = allMedia.find(m=>m.id==id); if(media) openLightbox(media.url, media.type); }); });
         document.querySelectorAll('.btn-life').forEach(btn=>btn.addEventListener('click',(e)=>{ e.stopPropagation(); const id=btn.getAttribute('data-id'); const type=btn.getAttribute('data-type'); const target = type==='image' ? document.querySelector(`.photo-img[data-id="${id}"]`) : document.querySelector(`.video-media[data-id="${id}"]`); if(target){ target.classList.toggle('forced-color'); btn.innerHTML=target.classList.contains('forced-color')?'<i class="fas fa-heart"></i> Vivida':'<i class="fas fa-feather-alt"></i> Dar vida'; } }));
-        document.querySelectorAll('.btn-share').forEach(btn=>btn.addEventListener('click',(e)=>{ e.stopPropagation(); const url=btn.getAttribute('data-url'); const cap=btn.getAttribute('data-caption'); const type=btn.getAttribute('data-type'); shareMedia(url, cap, type); }));
+        document.querySelectorAll('.btn-share').forEach(btn=>btn.addEventListener('click',(e)=>{ e.stopPropagation(); const url=btn.getAttribute('data-url'); const cap=btn.getAttribute('data-caption'); shareMedia(url, cap); }));
         document.querySelectorAll('.video-media').forEach(video=>{ video.addEventListener('mouseenter',()=>video.play().catch(()=>{})); video.addEventListener('mouseleave',()=>{video.pause(); video.currentTime=0;}); video.addEventListener('touchstart',()=>video.play().catch(()=>{})); });
     }
     
-    function renderAdminList(){ if(!adminPhotoListDiv) return; if(!allMedia.length){ adminPhotoListDiv.innerHTML="<p>Nenhuma mídia</p>"; return; } adminPhotoListDiv.innerHTML=allMedia.map(m=>`<div class="admin-photo-item">${m.type==='image'?`<img src="${m.url}">`:`<video src="${m.url}" muted></video>`}<div><strong>${escapeHtml(m.caption||"sem legenda")}</strong><br><small>${m.type}</small></div><div><button class="edit-photo-btn" data-id="${m.id}"><i class="fas fa-edit"></i> Editar</button><button class="delete-photo-btn" data-id="${m.id}"><i class="fas fa-trash"></i> Excluir</button></div></div>`).join(''); document.querySelectorAll('.delete-photo-btn').forEach(btn=>btn.addEventListener('click',async(e)=>{ const id=btn.getAttribute('data-id'); if(!confirm("Remover?")) return; if(firestoreReady && !id.toString().startsWith('test_')){ const { deleteDoc, doc }=window.dbHelpers; await deleteDoc(doc(db,"media",id)); }else{ allMedia=allMedia.filter(p=>p.id!=id); renderGallery(); renderAdminList(); } })); document.querySelectorAll('.edit-photo-btn').forEach(btn=>btn.addEventListener('click',(e)=>{ const id=btn.getAttribute('data-id'); const media=allMedia.find(p=>p.id==id); if(media){ document.getElementById('editMediaId').value=id; document.getElementById('editCaption').value=media.caption||''; document.getElementById('editMediaFile').value=''; document.getElementById('editModal').style.display='flex'; } })); }
+    function renderAdminList(){ if(!adminPhotoListDiv) return; if(!allMedia.length){ adminPhotoListDiv.innerHTML="<p>Nenhuma mídia</p>"; return; } adminPhotoListDiv.innerHTML=allMedia.map(m=>`<div class="admin-photo-item">${m.type==='image'?`<img src="${m.url}">`:`<video src="${m.url}" muted></video>`}<div><strong>${escapeHtml(m.caption||"sem legenda")}</strong><br><small>${m.type}</small></div><div><button class="edit-photo-btn" data-id="${m.id}"><i class="fas fa-edit"></i> Editar</button><button class="delete-photo-btn" data-id="${m.id}"><i class="fas fa-trash"></i> Excluir</button></div></div>`).join(''); document.querySelectorAll('.delete-photo-btn').forEach(btn=>btn.addEventListener('click',async(e)=>{ const id=btn.getAttribute('data-id'); if(!confirm("Remover?")) return; if(firestoreReady){ const { deleteDoc, doc }=window.dbHelpers; await deleteDoc(doc(db,"media",id)); } })); document.querySelectorAll('.edit-photo-btn').forEach(btn=>btn.addEventListener('click',(e)=>{ const id=btn.getAttribute('data-id'); const media=allMedia.find(p=>p.id==id); if(media){ document.getElementById('editMediaId').value=id; document.getElementById('editCaption').value=media.caption||''; document.getElementById('editMediaFile').value=''; document.getElementById('editModal').style.display='flex'; } })); }
     
     function updateFloatingButtons(){ const wBtn=document.getElementById('whatsappBtn'), cBtn=document.getElementById('callBtn'), iBtn=document.getElementById('instagramBtn'), aBtn=document.getElementById('addressBtn'); if(wBtn) wBtn.href=`https://wa.me/${contacts.whatsapp.replace(/[^0-9+]/g,'')}`; if(cBtn) cBtn.href=`tel:${contacts.phone.replace(/[^0-9+]/g,'')}`; if(iBtn) iBtn.href=`https://instagram.com/${contacts.instagram.replace('@','')}`; if(aBtn) aBtn.onclick=(e)=>{ e.preventDefault(); alert(`📍 ${contacts.address}`); }; }
     
@@ -321,7 +263,7 @@
     const menuToggle=document.getElementById('menuToggle'), floatingMenu=document.getElementById('floatingMenu'); menuToggle.addEventListener('click',()=>floatingMenu.classList.toggle('open'));
     const backBtn=document.getElementById('backToTop'); window.addEventListener('scroll',()=>{ backBtn.classList.toggle('show',window.scrollY>300); }); backBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
     saveSettingsBtn.addEventListener('click',saveSiteSettings); saveContactsBtn.addEventListener('click',saveContacts); saveLogoBtn.addEventListener('click',uploadLogoLogic); uploadMediaBtn.addEventListener('click',uploadNewMedia); saveAboutBtn.addEventListener('click',saveAboutContent);
-    document.getElementById('confirmEditBtn')?.addEventListener('click',async()=>{ const id=document.getElementById('editMediaId').value, newCaption=document.getElementById('editCaption').value, file=document.getElementById('editMediaFile').files[0]; await editMedia(id, newCaption, file); document.getElementById('editModal').style.display='none'; renderGallery(); if(isAdminLoggedIn) renderAdminList(); alert("Atualizado!"); });
+    document.getElementById('confirmEditBtn')?.addEventListener('click',async()=>{ const id=document.getElementById('editMediaId').value, newCaption=document.getElementById('editCaption').value, file=document.getElementById('editMediaFile').files[0]; await editMedia(id, newCaption, file); document.getElementById('editModal').style.display='none'; alert("Atualizado!"); });
     document.getElementById('cancelEditBtn')?.addEventListener('click',()=>{ document.getElementById('editModal').style.display='none'; });
     function preventPinchZoom() { document.body.addEventListener('touchmove', function(e) { if(e.touches.length > 1) e.preventDefault(); }, { passive: false }); } preventPinchZoom();
     initFirebase(); initNav();
