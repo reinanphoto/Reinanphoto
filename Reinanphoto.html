@@ -67,9 +67,9 @@
         }
         
         .logo-header .logo-img {
-            height: 65px;
+            height: 80px;
             width: auto;
-            max-width: 160px;
+            max-width: 180px;
             object-fit: contain;
             background: transparent;
             border-radius: 8px;
@@ -262,9 +262,9 @@
         }
         
         .logo-footer-img {
-            height: 55px;
+            height: 70px;
             width: auto;
-            max-width: 140px;
+            max-width: 160px;
             object-fit: contain;
         }
         
@@ -293,6 +293,93 @@
             color: #888;
         }
         
+        /* Modal de escolha do endereço */
+        .address-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(12px);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .address-card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 40px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 320px;
+            text-align: center;
+        }
+        
+        .address-card h3 {
+            font-family: 'Inter', sans-serif;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+        
+        .address-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .address-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.8rem;
+            border-radius: 20px;
+            transition: all 0.3s;
+            width: 100px;
+        }
+        
+        .address-btn i {
+            font-size: 2.5rem;
+        }
+        
+        .address-btn span {
+            font-size: 0.8rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+        
+        .address-btn.google-btn i { color: #34A853; }
+        .address-btn.waze-btn i { color: #1C6EA4; }
+        
+        .address-btn:hover {
+            background: rgba(0,0,0,0.1);
+            transform: scale(1.05);
+        }
+        
+        .cancel-address-btn {
+            background: #eaeaea;
+            color: #333;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .cancel-address-btn:hover {
+            background: #ff6b6b;
+            color: white;
+        }
+        
         /* Responsividade */
         @media (max-width: 1024px) {
             .cena-03 .box-img {
@@ -306,7 +393,7 @@
             }
             
             .logo-header .logo-img {
-                height: 50px;
+                height: 60px;
             }
             
             .title-editorial {
@@ -490,6 +577,24 @@
     <a href="#" id="menuAddressLink">Endereço</a>
 </div>
 
+<!-- ADDRESS MODAL (com ícones) -->
+<div id="addressModal" class="address-modal">
+    <div class="address-card">
+        <h3><i class="fas fa-map-marker-alt"></i> Como chegar?</h3>
+        <div class="address-buttons">
+            <button class="address-btn google-btn" id="googleMapsBtn">
+                <i class="fab fa-google"></i>
+                <span>Google Maps</span>
+            </button>
+            <button class="address-btn waze-btn" id="wazeBtn">
+                <i class="fas fa-map"></i>
+                <span>Waze</span>
+            </button>
+        </div>
+        <button class="cancel-address-btn" id="cancelAddressBtn">Cancelar</button>
+    </div>
+</div>
+
 <!-- VIEWS -->
 <div id="galleryView" class="view active-view">
     <div class="wrapper-editorial">
@@ -614,7 +719,6 @@
     let aboutHtml = "";
     let currentLogoUrl = "";
     let currentSlideIndex = 0;
-    let currentSlider = null;
     
     // DOM elements
     const photoGridDesktop = document.getElementById('photoGridDesktop');
@@ -643,7 +747,37 @@
     const siteLogoImg = document.getElementById('siteLogo');
     const footerLogoImg = document.getElementById('footerLogo');
     
+    // Address modal elements
+    const addressModal = document.getElementById('addressModal');
+    const googleMapsBtn = document.getElementById('googleMapsBtn');
+    const wazeBtn = document.getElementById('wazeBtn');
+    const cancelAddressBtn = document.getElementById('cancelAddressBtn');
+    
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+    
+    function showAddressModal() {
+        if (addressModal) addressModal.style.display = 'flex';
+    }
+    
+    function closeAddressModal() {
+        if (addressModal) addressModal.style.display = 'none';
+    }
+    
+    function openGoogleMaps() {
+        const addressEncoded = encodeURIComponent(contacts.address);
+        window.open(`https://www.google.com/maps/search/?api=1&query=${addressEncoded}`, '_blank');
+        closeAddressModal();
+    }
+    
+    function openWaze() {
+        const addressEncoded = encodeURIComponent(contacts.address);
+        window.open(`https://waze.com/ul?q=${addressEncoded}`, '_blank');
+        closeAddressModal();
+    }
+    
+    if (googleMapsBtn) googleMapsBtn.addEventListener('click', openGoogleMaps);
+    if (wazeBtn) wazeBtn.addEventListener('click', openWaze);
+    if (cancelAddressBtn) cancelAddressBtn.addEventListener('click', closeAddressModal);
     
     async function uploadToCloudinary(file) {
         const isVideo = file.type.startsWith('video/');
@@ -773,7 +907,6 @@
             if (newIndex !== currentSlideIndex) {
                 currentSlideIndex = newIndex;
                 updateActiveDot(currentSlideIndex);
-                // Pausar vídeos não visíveis
                 const videos = slider.querySelectorAll('video');
                 videos.forEach((video, i) => {
                     if (i === currentSlideIndex) video.play().catch(()=>{});
@@ -786,10 +919,6 @@
         slider.scrollTo({ left: slider.clientWidth * startIndex, behavior: 'auto' });
         currentSlideIndex = startIndex;
         updateActiveDot(startIndex);
-        
-        let touchStartX = 0;
-        slider.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
-        slider.addEventListener('touchend', (e) => {});
         
         document.getElementById('closeModalBtn').onclick = () => modal.style.display = 'none';
         modal.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
@@ -880,15 +1009,9 @@
         if(menuWhats) menuWhats.href = `https://wa.me/${contacts.whatsapp.replace(/[^0-9+]/g,'')}`;
         if(menuCall) menuCall.href = `tel:${contacts.phone.replace(/[^0-9+]/g,'')}`;
         if(menuAddress) {
-            const addressEncoded = encodeURIComponent(contacts.address);
             menuAddress.onclick = (e) => {
                 e.preventDefault();
-                const choice = confirm("Escolher app de navegação:\nOK = Google Maps\nCancelar = Waze");
-                if (choice) {
-                    window.open(`https://www.google.com/maps/search/?api=1&query=${addressEncoded}`, '_blank');
-                } else {
-                    window.open(`https://waze.com/ul?q=${addressEncoded}`, '_blank');
-                }
+                showAddressModal();
             };
         }
         if(footerInsta) footerInsta.href = `https://instagram.com/${contacts.instagram.replace('@','')}`;
